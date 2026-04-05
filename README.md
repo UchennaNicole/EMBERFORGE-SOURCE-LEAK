@@ -127,7 +127,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | 6 | MITRE ATT&CK: T1041 – Exfiltration Over C2 Channel | T1041 – Exfiltration Over C2 Channel | <Placeholder> |
 | 7 | MITRE ATT&CK: T1552.003 – Credentials in Command Line | T1552 – Unsecured Credentials. | <Placeholder> |
 | 8 | MITRE ATT&CK: T1560.001 – Archive via Utility | T1560 – Archive Collected Data. | <Placeholder> |
-| 9 | <Placeholder> | <Placeholder> | <Placeholder> |
+| 9 | MITRE ATT&CK: T1105 – Ingress Tool Transfer | T1105 – Ingress Tool Transfer. | <Placeholder> |
 | 10 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 11 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 12 | <Placeholder> | <Placeholder> | <Placeholder> |
@@ -556,34 +556,41 @@ Search for PowerShell commands containing `Compress-Archive` or similar file sta
 <summary id="-flag-9">🚩 <strong>Flag 9: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+Download attacker-controlled tools and payloads from external infrastructure to enable further compromise and operations.
 
 ### 📌 Finding
-<High-level description of the activity>
+Multiple command-line executions across the environment referenced the same external domain, `sync.cloud-endpoint.net`, indicating it was used as a staging server to host and deliver attacker tools.
 
 ### 🔍 Evidence
 
 | Field | Value |
 |------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Host | EC2AMAZ-16V3AU4.emberforge.local |
+| Timestamp | 2026-01-30 21:XX:XX UTC |
+| Process | powershell.exe / certutil.exe / curl.exe (varies) |
+| Parent Process | cmd.exe |
+| Command Line | <command referencing https://sync.cloud-endpoint.net/...> |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+This identifies attacker-controlled infrastructure used to stage and deliver malicious tools. The domain `sync.cloud-endpoint.net` represents a critical indicator of compromise (IOC) that can be used for blocking, threat intelligence enrichment, and scoping the intrusion. Repeated connections to the same domain across hosts confirm coordinated attacker activity and external control.
 
 ### 🔧 KQL Query Used
-<Add KQL here>
+EmberForgeX_CL
+| where todatetime(UtcTime_s) between (datetime(2026-01-30 21:00:00) .. datetime(2026-01-31 00:00:00))
+| where CommandLine_s has_any ("http://","https://","Invoke-WebRequest","iwr ","curl ","bitsadmin","certutil ","Start-BitsTransfer","WebClient")
+| extend Domain = extract(@"https?://([^/\s:""]+)", 1, CommandLine_s)
+| where isnotempty(Domain)
+| summarize Hits=count(), Hosts=make_set(Computer) by Domain
+| order by Hits desc
 
 ### 🖼️ Screenshot
-<Insert screenshot>
+<img width="1370" height="670" alt="image" src="https://github.com/user-attachments/assets/f95e7b28-d5b9-4fab-b1a5-bb4c43c85fe8" />
 
 ### 🛠️ Detection Recommendation
+Monitor and alert on command-line activity that includes external URLs, especially downloads from uncommon or newly observed domains. Implement DNS and proxy logging to detect repeated connections to suspicious infrastructure and block known malicious domains like `sync.cloud-endpoint.net`.
 
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+Search for `http`/`https` patterns in command-line logs and extract domains for aggregation. Pivot on domains with multiple hits across hosts—these often indicate staging servers or command-and-control infrastructure used by attackers.
 
 </details>
 
