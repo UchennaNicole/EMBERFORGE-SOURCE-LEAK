@@ -235,10 +235,15 @@ Start every investigation by enumerating available tables and understanding thei
 <Explain impact, risk, and relevance>
 
 ### 🔧 KQL Query Used
-<Add KQL here>
+EmberForgeX_CL
+| where todatetime(UtcTime_s) between (datetime(2026-01-30 21:00:00) .. datetime(2026-01-31 00:00:00))
+| where CommandLine_s has_any ("rclone", "Compress-Archive", "mega:exfil")
+| project UtcTime_s, Computer, CommandLine_s
+| order by todatetime(UtcTime_s) asc
 
 ### 🖼️ Screenshot
-<Insert screenshot>
+<img width="2266" height="844" alt="image" src="https://github.com/user-attachments/assets/b91b9a02-4185-422b-b168-782e97091d5d" />
+
 
 ### 🛠️ Detection Recommendation
 
