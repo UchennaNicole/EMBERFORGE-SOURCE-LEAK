@@ -129,7 +129,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | 8 | MITRE ATT&CK: T1560.001 – Archive via Utility | T1560 – Archive Collected Data. | <Placeholder> |
 | 9 | MITRE ATT&CK: T1105 – Ingress Tool Transfer | T1105 – Ingress Tool Transfer. | <Placeholder> |
 | 10 | MITRE ATT&CK: T1218.011 – Rundll32 | T1218 – System Binary Proxy Execution. | <Placeholder> |
-| 11 | <Placeholder> | <Placeholder> | <Placeholder> |
+| 11 | MITRE ATT&CK: T1553.005 – Mark-of-the-Web Bypass | T1553 – Subvert Trust Controls. | <Placeholder> |
 | 12 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 13 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 14 | <Placeholder> | <Placeholder> | <Placeholder> |
@@ -619,7 +619,16 @@ A Windows utility (`rundll32.exe`) was used to load and execute a suspicious DLL
 This represents the initial execution vector of the attack, where a user (Lisa) likely opened a malicious file that triggered DLL execution. Using `rundll32.exe`, a legitimate Windows binary, allows the attacker to evade detection while executing arbitrary code. This is a classic Living Off The Land technique and marks the starting point of the compromise, enabling subsequent stages like tool download, staging, and exfiltration.
 
 ### 🔧 KQL Query Used
-<Add KQL here>
+EmberForgeX_CL
+| extend Utc = todatetime(column_ifexists("UtcTime_s", ""))
+| extend ProcCmd = coalesce(tostring(column_ifexists("CommandLine_s", "")), tostring(column_ifexists("ProcCmd", "")))
+| extend ProcImage = coalesce(tostring(column_ifexists("Image_s", "")), tostring(column_ifexists("ProcImage", "")), tostring(column_ifexists("NewProcessName_s", "")))
+| extend Evt = tostring(column_ifexists("EventCode_s", ""))
+| where Utc between (datetime(2026-01-30 21:00:00) .. datetime(2026-01-31 00:00:00))
+| where isempty(Evt) or Evt in ("1", "4688")
+| where ProcCmd has "Desktop" or ProcImage has_any ("control.exe", "rundll32.exe", "mshta.exe", "regsvr32.exe", "wscript.exe", "cscript.exe")
+| project Utc, Computer, ProcImage, ProcCmd
+| order by Utc asc
 
 ### 🖼️ Screenshot
 <img width="1004" height="238" alt="image" src="https://github.com/user-attachments/assets/6291caee-d237-4b1f-b28b-4660fb495c90" />
@@ -638,34 +647,45 @@ Search for `rundll32.exe` executions and inspect the DLL path. Focus on non-syst
 <summary id="-flag-11">🚩 <strong>Flag 11: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+Execute malicious code from a mounted disk image to bypass security controls and establish initial access.
 
 ### 📌 Finding
-<High-level description of the activity>
+The malicious DLL (`review.dll`) was executed from the `D:` drive using `rundll32.exe`, indicating the file originated from a mounted disk image (e.g., ISO/IMG/VHD) rather than the local filesystem.
 
 ### 🔍 Evidence
 
 | Field | Value |
 |------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Host | EC2AMAZ-B9GHHO6.emberforge.local |
+| Timestamp | 2026-01-30 21:27:03.337 UTC |
+| Process | rundll32.exe |
+| Parent Process | explorer.exe |
+| Command Line | "C:\Windows\System32\rundll32.exe" D:\review.dll,StartW |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+Execution from a non-standard drive (`D:`) strongly suggests the use of a mounted disk image, a common technique to bypass Windows security mechanisms such as Mark-of-the-Web protections. This allows malicious files to appear more trusted and increases the likelihood of successful execution by the user. It highlights a stealthy initial access vector that can evade traditional file-based defenses.
+
 
 ### 🔧 KQL Query Used
-<Add KQL here>
+EmberForgeX_CL
+| extend Utc = todatetime(column_ifexists("UtcTime_s", ""))
+| extend ProcCmd = coalesce(tostring(column_ifexists("CommandLine_s", "")), tostring(column_ifexists("ProcCmd", "")))
+| extend ProcImage = coalesce(tostring(column_ifexists("Image_s", "")), tostring(column_ifexists("ProcImage", "")), tostring(column_ifexists("NewProcessName_s", "")))
+| extend Evt = tostring(column_ifexists("EventCode_s", ""))
+| where Utc between (datetime(2026-01-30 21:00:00) .. datetime(2026-01-31 00:00:00))
+| where isempty(Evt) or Evt in ("1", "4688")
+| where ProcCmd has "Desktop" or ProcImage has_any ("control.exe", "rundll32.exe", "mshta.exe", "regsvr32.exe", "wscript.exe", "cscript.exe")
+| project Utc, Computer, ProcImage, ProcCmd
+| order by Utc asc
 
 ### 🖼️ Screenshot
-<Insert screenshot>
+<img width="906" height="260" alt="image" src="https://github.com/user-attachments/assets/ac3ac2a4-421a-42ea-8c3c-2b2656516264" />
 
 ### 🛠️ Detection Recommendation
+Monitor for execution of processes from non-system drives (e.g., `D:\`, `E:\`) and alert on `rundll32.exe` loading DLLs from removable or mounted media. Enable logging for disk mount events and correlate with subsequent process execution.
 
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+Search for processes executing from drive letters other than `C:` and investigate associated file origins. Look for patterns involving mounted ISO or VHD files followed by execution of binaries or DLLs, especially via LOLBins like `rundll32.exe`.
 
 </details>
 
