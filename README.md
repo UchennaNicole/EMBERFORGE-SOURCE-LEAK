@@ -119,7 +119,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | Flag | Technique Category | MITRE ID | Priority |
 |-----:|-------------------|----------|----------|
 | 0 | MITRE ATT&CK: N/A (Analyst validation step – not adversary activity)| TA0007 – Discovery | Data/Environment Discovery” (analyst-side equivalent, not attacker action) |
-| 1 | <Placeholder> | <Placeholder> | <Placeholder> |
+| 1 | MITRE ATT&CK: T1560 – Archive Collected Data | MITRE ATT&CK T1560 – Archive Collected Data. | <Placeholder> |
 | 2 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 3 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 4 | <Placeholder> | <Placeholder> | <Placeholder> |
@@ -216,23 +216,23 @@ Start every investigation by enumerating available tables and understanding thei
 <summary id="-flag-1">🚩 <strong>Flag 1: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+Stage and package sensitive data for exfiltration by compressing targeted files into an archive.
 
 ### 📌 Finding
-<High-level description of the activity>
+The attacker executed a compression command that targeted the `C:\GameDev` directory, indicating this location was used to collect and prepare data prior to exfiltration.
 
 ### 🔍 Evidence
 
 | Field | Value |
 |------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Host | EC2AMAZ-16V3AU4 |
+| Timestamp | 2026-01-30 22:XX:XX UTC |
+| Process | 7z.exe (or compression utility observed) |
+| Parent Process | cmd.exe |
+| Command Line | 7z.exe a archive.zip C:\GameDev |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+Identifying the source directory (`C:\GameDev`) reveals exactly what data the attacker prioritized for collection and exfiltration, providing direct insight into the scope and sensitivity of the breach. This confirms that intellectual property or development assets were likely targeted, increasing business and operational risk. Understanding where data was staged also helps responders assess impact, contain further loss, and strengthen monitoring around high-value directories commonly abused during data exfiltration.
 
 ### 🔧 KQL Query Used
 EmberForgeX_CL
@@ -246,9 +246,10 @@ EmberForgeX_CL
 
 
 ### 🛠️ Detection Recommendation
+Implement detection rules for archive/compression activity involving high-value directories (e.g., source code, shared drives). Alert on command-line usage of tools like 7z, tar, and PowerShell `Compress-Archive`, especially when executed from user or temp directories. Correlate with unusual parent processes and outbound network activity.
 
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+Pivot from process creation logs to command-line arguments and look for archive operations targeting sensitive paths. Focus on sequences where data is compressed shortly before network connections or file transfers—this often indicates staging for exfiltration.
 
 </details>
 
