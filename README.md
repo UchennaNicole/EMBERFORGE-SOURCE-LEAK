@@ -126,7 +126,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | 5 | MITRE ATT&CK: T1567.002 – Exfiltration to Cloud Storage| T1567 – Exfiltration Over Web Service.| <Placeholder> |
 | 6 | MITRE ATT&CK: T1041 – Exfiltration Over C2 Channel | T1041 – Exfiltration Over C2 Channel | <Placeholder> |
 | 7 | MITRE ATT&CK: T1552.003 – Credentials in Command Line | T1552 – Unsecured Credentials. | <Placeholder> |
-| 8 | <Placeholder> | <Placeholder> | <Placeholder> |
+| 8 | MITRE ATT&CK: T1560.001 – Archive via Utility | T1560 – Archive Collected Data. | <Placeholder> |
 | 9 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 10 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 11 | <Placeholder> | <Placeholder> | <Placeholder> |
@@ -513,34 +513,40 @@ Search for command lines containing authentication flags (`--user`, `--pass`, `c
 <summary id="-flag-8">🚩 <strong>Flag 8: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+Stage and prepare sensitive data for exfiltration by compressing it into a single archive using built-in system tools.
 
 ### 📌 Finding
-<High-level description of the activity>
+The attacker used the native PowerShell cmdlet `Compress-Archive` to create an archive (`gamedev.zip`) from the `C:\GameDev` directory, demonstrating Living Off The Land behavior to avoid detection.
 
 ### 🔍 Evidence
 
 | Field | Value |
 |------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Host | EC2AMAZ-16V3AU4.emberforge.local |
+| Timestamp | 2026-01-30 23:11:28.112 UTC |
+| Process | powershell.exe |
+| Parent Process | cmd.exe (likely) |
+| Command Line | powershell.exe -c "Compress-Archive -Path C:\GameDev -DestinationPath C:\Users\Public\gamedev.zip" |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+This shows the attacker leveraged a native Windows capability instead of external tools, making the activity blend in with legitimate administrative actions. Compressing data into a single archive simplifies exfiltration and reduces detection surface. This is a classic Living Off The Land technique, increasing the likelihood of evading traditional security controls.
 
 ### 🔧 KQL Query Used
-<Add KQL here>
+EmberForgeX_CL
+| where todatetime(UtcTime_s) between (datetime(2026-01-30 21:00:00) .. datetime(2026-01-31 00:00:00))
+| where CommandLine_s has_any ("rclone", "Compress-Archive", "mega:exfil")
+| project UtcTime_s, Computer, CommandLine_s
+| order by todatetime(UtcTime_s) asc
 
 ### 🖼️ Screenshot
-<Insert screenshot>
+<img width="2040" height="234" alt="image" src="https://github.com/user-attachments/assets/93c8a14e-31a3-4af9-b4a4-d984332b337a" />
+
 
 ### 🛠️ Detection Recommendation
+Monitor PowerShell execution with command-line logging enabled and create alerts for usage of `Compress-Archive`, especially when targeting sensitive directories or writing archives to public or temporary paths (e.g., `C:\Users\Public`). Correlate with subsequent network activity or file transfers.
 
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+Search for PowerShell commands containing `Compress-Archive` or similar file staging behavior. Focus on sequences where large directories are compressed shortly before outbound connections or data transfer tools are executed.
 
 </details>
 
