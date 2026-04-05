@@ -131,7 +131,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | 10 | MITRE ATT&CK: T1218.011 – Rundll32 | T1218 – System Binary Proxy Execution. | <Placeholder> |
 | 11 | MITRE ATT&CK: T1553.005 – Mark-of-the-Web Bypass | T1553 – Subvert Trust Controls. | <Placeholder> |
 | 12 | MITRE ATT&CK: T1204.002 – User Execution (Malicious File) | T1204 – User Execution. | <Placeholder> |
-| 13 | <Placeholder> | <Placeholder> | <Placeholder> |
+| 13 | T1218.011 – Rundll32 – Signed Binary Proxy Execution: Rundll32| <Placeholder> | <Placeholder> |
 | 14 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 15 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 16 | <Placeholder> | <Placeholder> | <Placeholder> |
@@ -738,34 +738,49 @@ Pivot on the `User` field in process creation logs to identify the first user as
 <summary id="-flag-13">🚩 <strong>Flag 13: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+Execute a malicious payload by leveraging a trusted Windows utility (`rundll32.exe`) to load and run a rogue DLL (`review.dll`), likely for stealthy code execution and potential persistence or follow-on actions.
 
 ### 📌 Finding
-<High-level description of the activity>
+A suspicious DLL (`review.dll`) was executed via `rundll32.exe`, a legitimate Windows binary commonly abused for proxy execution. The process was initiated from a user-driven parent process, indicating initial user interaction (patient zero) leading to execution.
 
 ### 🔍 Evidence
 
 | Field | Value |
 |------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Host | <Affected Host - e.g., WIN-XXXX> |
+| Timestamp | <Execution Time from Event Logs> |
+| Process | rundll32.exe |
+| Parent Process | explorer.exe |
+| Command Line | "C:\Windows\System32\rundll32.exe" D:\review.dll,StartW |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+This activity reflects **Living Off the Land (LOLBins)** behavior, where attackers abuse legitimate system binaries to evade detection. `rundll32.exe` is trusted and often bypasses traditional security controls, making it an effective tool for executing malicious DLLs.  
+
+The presence of a DLL executed from a non-standard directory (`D:\`) is highly suspicious and suggests:  
+- Initial compromise via user interaction (e.g., download, USB, or phishing)  
+- Potential execution of arbitrary attacker-controlled code  
+- Increased risk of persistence, lateral movement, or data exfiltration  
+
 
 ### 🔧 KQL Query Used
-<Add KQL here>
+EmberForgeX_CL
+| where todatetime(UtcTime_s) between (datetime(2026-01-30 21:27:00) .. datetime(2026-01-30 21:27:10))
+| where Computer == "EC2AMAZ-B9GHHO6.emberforge.local"
+| where CommandLine_s contains "rundll32.exe"
+| where CommandLine_s contains "review.dll"
+| project UtcTime_s, Computer, CommandLine_s, User_s
 
 ### 🖼️ Screenshot
-<Insert screenshot>
+<img width="992" height="58" alt="image" src="https://github.com/user-attachments/assets/0cb8f698-9588-44a0-8bd3-c2dcd13f1006" />
 
 ### 🛠️ Detection Recommendation
+Identify and alert on abuse of legitimate Windows binaries (like rundll32.exe) executing suspicious or non-standard payloads.
 
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+Search for anomalous `rundll32.exe` executions, especially:  
+- DLLs executed from non-system paths (e.g., `D:\`, `Downloads`, `Temp`)  
+- Uncommon or non-standard exported functions (e.g., `StartW`)  
+- Parent-child chains involving `explorer.exe` → `rundll32.exe`  
 
 </details>
 
