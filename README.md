@@ -130,7 +130,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | 9 | MITRE ATT&CK: T1105 – Ingress Tool Transfer | T1105 – Ingress Tool Transfer. | <Placeholder> |
 | 10 | MITRE ATT&CK: T1218.011 – Rundll32 | T1218 – System Binary Proxy Execution. | <Placeholder> |
 | 11 | MITRE ATT&CK: T1553.005 – Mark-of-the-Web Bypass | T1553 – Subvert Trust Controls. | <Placeholder> |
-| 12 | <Placeholder> | <Placeholder> | <Placeholder> |
+| 12 | MITRE ATT&CK: T1204.002 – User Execution (Malicious File) | T1204 – User Execution. | <Placeholder> |
 | 13 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 14 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 15 | <Placeholder> | <Placeholder> | <Placeholder> |
@@ -695,34 +695,40 @@ Search for processes executing from drive letters other than `C:` and investigat
 <summary id="-flag-12">🚩 <strong>Flag 12: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+Execute the initial malicious payload via a user account to establish a foothold in the environment.
 
 ### 📌 Finding
-<High-level description of the activity>
+The malicious DLL (`review.dll`) was executed using `rundll32.exe` under the user account `lmartin`, identifying this user as patient zero in the compromise.
 
 ### 🔍 Evidence
 
 | Field | Value |
 |------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Host | EC2AMAZ-B9GHHO6.emberforge.local |
+| Timestamp | 2026-01-30 21:27:03.300 UTC |
+| Process | rundll32.exe |
+| Parent Process | explorer.exe |
+| Command Line | "C:\Windows\System32\rundll32.exe" D:\review.dll,StartW |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+Identifying `lmartin` as the user who executed the payload pinpoints the initial point of compromise (patient zero). This is critical for scoping the incident, understanding how the attack began (likely user interaction), and determining what access the attacker gained. It also informs containment actions such as isolating the user account, resetting credentials, and reviewing related activity.
 
 ### 🔧 KQL Query Used
-<Add KQL here>
+EmberForgeX_CL
+| where todatetime(UtcTime_s) between (datetime(2026-01-30 21:27:00) .. datetime(2026-01-30 21:27:10))
+| where Computer == "EC2AMAZ-B9GHHO6.emberforge.local"
+| where CommandLine_s contains "rundll32.exe"
+| where CommandLine_s contains "review.dll"
+| project UtcTime_s, Computer, CommandLine_s, User_s
 
 ### 🖼️ Screenshot
-<Insert screenshot>
+<img width="1622" height="694" alt="image" src="https://github.com/user-attachments/assets/d55b5e10-1130-448b-a1d8-f71e0ba01284" />
 
 ### 🛠️ Detection Recommendation
+Enable auditing of process creation with user context and alert on suspicious executions (e.g., `rundll32.exe` loading DLLs from non-standard paths) tied to specific user accounts. Monitor for unusual activity originating from user endpoints, especially involving mounted drives or external media.
 
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+Pivot on the `User` field in process creation logs to identify the first user associated with malicious activity. Trace all subsequent actions tied to that account to understand the full attack path and potential lateral movement.
 
 </details>
 
