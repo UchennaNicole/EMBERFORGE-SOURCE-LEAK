@@ -140,7 +140,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | 19 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 20 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 21 | <Placeholder> | <Placeholder> | <Placeholder> |
-| 22 | <Placeholder> | <Placeholder> | <Placeholder> |
+| 22 | MITRE ATT&CK: T1003.001 – OS Credential Dumping (LSASS Memory)| T1003.001 – LSASS Memory | <Placeholder> |
 | 23 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 24 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 25 | <Placeholder> | <Placeholder> | <Placeholder> |
@@ -1121,34 +1121,38 @@ Look for uncommon parent-child or injection relationships (e.g., `rundll32.exe` 
 <summary id="-flag-22">🚩 <strong>Flag 22: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+Harvest credentials by dumping LSASS memory to extract plaintext passwords, hashes, and authentication tokens.
 
 ### 📌 Finding
-<High-level description of the activity>
+The attacker used `update.exe` to create an LSASS memory dump file (`lsass.dmp`) in `C:\Windows\System32`, indicating credential dumping activity using direct syscalls to evade detection.
 
 ### 🔍 Evidence
 
 | Field | Value |
 |------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Host | EC2AMAZ-B9GHHO6.emberforge.local |
+| Timestamp | 2026-01-30 21:48:13.933 UTC |
+| Process | update.exe |
+| Parent Process | schtasks.exe / cmd.exe |
+| Command Line | N/A (file creation observed via Sysmon EventCode 11) |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+LSASS contains sensitive credential material for all logged-in users. Dumping it allows attackers to extract passwords, NTLM hashes, and Kerberos tickets, enabling lateral movement and privilege escalation. The use of direct syscalls bypasses traditional API-based detection, making this a stealthy and high-impact credential access technique.
 
 ### 🔧 KQL Query Used
-<Add KQL here>
+EmberForgeX_CL
+| where EventCode_s == "11"
+| where TargetFilename_s contains ".dmp"
+| project UtcTime_s, Image_s, TargetFilename_s
 
 ### 🖼️ Screenshot
-<Insert screenshot>
+<img width="1284" height="682" alt="image" src="https://github.com/user-attachments/assets/bd5b3f23-73cc-451a-bc52-c2004926c347" />
 
 ### 🛠️ Detection Recommendation
+Monitor for creation of `.dmp` files in sensitive directories like `C:\Windows\System32`, especially `lsass.dmp`. Alert on non-standard processes (e.g., not `procdump.exe`, `taskmgr.exe`) interacting with LSASS. Use behavioral detection (file creation + process context) rather than relying solely on API-based monitoring.
 
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+Search for Sysmon Event ID 11 (FileCreate) with filenames like `lsass.dmp`. Pivot to the creating process and investigate its origin, execution path, and related activity to identify credential dumping attempts.
 
 </details>
 
