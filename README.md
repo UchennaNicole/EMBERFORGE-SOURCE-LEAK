@@ -128,7 +128,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | 7 | MITRE ATT&CK: T1552.003 – Credentials in Command Line | T1552 – Unsecured Credentials. | <Placeholder> |
 | 8 | MITRE ATT&CK: T1560.001 – Archive via Utility | T1560 – Archive Collected Data. | <Placeholder> |
 | 9 | MITRE ATT&CK: T1105 – Ingress Tool Transfer | T1105 – Ingress Tool Transfer. | <Placeholder> |
-| 10 | <Placeholder> | <Placeholder> | <Placeholder> |
+| 10 | MITRE ATT&CK: T1218.011 – Rundll32 | T1218 – System Binary Proxy Execution. | <Placeholder> |
 | 11 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 12 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 13 | <Placeholder> | <Placeholder> | <Placeholder> |
@@ -600,34 +600,35 @@ Search for `http`/`https` patterns in command-line logs and extract domains for 
 <summary id="-flag-10">🚩 <strong>Flag 10: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+Execute malicious code on the workstation to establish initial access and begin the compromise.
 
 ### 📌 Finding
-<High-level description of the activity>
+A Windows utility (`rundll32.exe`) was used to load and execute a suspicious DLL file (`review.dll`) from a non-standard location, indicating the initial malicious execution triggered by user interaction.
 
 ### 🔍 Evidence
 
 | Field | Value |
 |------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Host | EC2AMAZ-B9GHHO6.emberforge.local |
+| Timestamp | 2026-01-30 21:27:03.337 UTC |
+| Process | rundll32.exe |
+| Parent Process | explorer.exe (likely user-initiated) |
+| Command Line | "C:\Windows\System32\rundll32.exe" D:\review.dll,StartW |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+This represents the initial execution vector of the attack, where a user (Lisa) likely opened a malicious file that triggered DLL execution. Using `rundll32.exe`, a legitimate Windows binary, allows the attacker to evade detection while executing arbitrary code. This is a classic Living Off The Land technique and marks the starting point of the compromise, enabling subsequent stages like tool download, staging, and exfiltration.
 
 ### 🔧 KQL Query Used
 <Add KQL here>
 
 ### 🖼️ Screenshot
-<Insert screenshot>
+<img width="1004" height="238" alt="image" src="https://github.com/user-attachments/assets/6291caee-d237-4b1f-b28b-4660fb495c90" />
 
 ### 🛠️ Detection Recommendation
+Monitor for `rundll32.exe` executing DLLs from unusual paths (e.g., user directories, removable drives like `D:\`). Alert on command lines that include DLL execution with exported functions (e.g., `,StartW`) and correlate with user activity such as file opens from desktop or external media.
 
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+Search for `rundll32.exe` executions and inspect the DLL path. Focus on non-system directories and uncommon drive letters. Pivot to parent processes like `explorer.exe` to identify user-triggered execution and trace the initial infection vector.
 
 </details>
 
