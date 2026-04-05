@@ -134,7 +134,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | 13 | T1218.011 – Rundll32 – Signed Binary Proxy Execution: Rundll32| <Placeholder> | <Placeholder> |
 | 14 | MITRE ATT&CK: T1204.002 – User Execution (Malicious File) | T1204 – User Execution.| <Placeholder> |
 | 15 | MITRE ATT&CK: T1053.005 – Scheduled Task | T1053.005 – Scheduled Task| <Placeholder> |
-| 16 | <Placeholder> | <Placeholder> | <Placeholder> |
+| 16 | MITRE ATT&CK: T1071.004 – Application Layer Protocol: DNS | T1071 – Application Layer Protocol. | <Placeholder> |
 | 17 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 18 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 19 | <Placeholder> | <Placeholder> | <Placeholder> |
@@ -877,34 +877,42 @@ Search for processes executing from `C:\Users\Public` or similar directories and
 <summary id="-flag-16">🚩 <strong>Flag 16: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+Establish command-and-control (C2) communication with attacker-controlled infrastructure to receive instructions and maintain access.
 
 ### 📌 Finding
-<High-level description of the activity>
+The compromised host made repeated DNS queries to the domain `cdn.cloud-endpoint.net`, indicating it was used as attacker-controlled infrastructure designed to blend in with legitimate cloud traffic.
 
 ### 🔍 Evidence
 
 | Field | Value |
 |------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Host | EC2AMAZ-B9GHHO6.emberforge.local |
+| Timestamp | 2026-01-30 21:XX:XX UTC |
+| Process | update.exe (likely) |
+| Parent Process | cmd.exe / scheduled task |
+| Command Line | N/A (DNS query observed via Sysmon EventCode 22) |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+This identifies active communication between the compromised system and attacker infrastructure. The domain `cdn.cloud-endpoint.net` is crafted to appear legitimate, helping evade detection. DNS-based communication is commonly used for command-and-control, enabling attackers to issue commands, maintain persistence, and exfiltrate data while blending into normal network traffic.
 
 ### 🔧 KQL Query Used
-<Add KQL here>
+EmberForgeX_CL
+| where todatetime(UtcTime_s) between (datetime(2026-01-30 21:00:00) .. datetime(2026-01-31 00:00:00))
+| where EventCode_s == "22"
+| project UtcTime=todatetime(UtcTime_s), Computer, Image_s, QueryName_s
+| where isnotempty(QueryName_s)
+| summarize count() by QueryName_s
+| order by count_ desc
 
 ### 🖼️ Screenshot
-<Insert screenshot>
+<img width="1318" height="708" alt="image" src="https://github.com/user-attachments/assets/e4b32248-b2de-4e40-8981-0a3f930586b7" />
 
 ### 🛠️ Detection Recommendation
+Enable and monitor DNS logging (e.g., Sysmon Event ID 22) and alert on suspicious or newly observed domains, especially those mimicking legitimate cloud services. Implement threat intelligence feeds to block known malicious domains and monitor for repeated queries to uncommon domains.
+
 
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+Aggregate DNS queries and look for domains with high frequency across hosts that do not match known legitimate services. Pay attention to domains that resemble cloud or CDN providers but are not officially recognized—these are often used for stealthy C2 communication.
 
 </details>
 
