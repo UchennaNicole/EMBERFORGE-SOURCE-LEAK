@@ -132,7 +132,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | 11 | MITRE ATT&CK: T1553.005 – Mark-of-the-Web Bypass | T1553 – Subvert Trust Controls. | <Placeholder> |
 | 12 | MITRE ATT&CK: T1204.002 – User Execution (Malicious File) | T1204 – User Execution. | <Placeholder> |
 | 13 | T1218.011 – Rundll32 – Signed Binary Proxy Execution: Rundll32| <Placeholder> | <Placeholder> |
-| 14 | <Placeholder> | <Placeholder> | <Placeholder> |
+| 14 | MITRE ATT&CK: T1204.002 – User Execution (Malicious File) | T1204 – User Execution.| <Placeholder> |
 | 15 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 16 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 17 | <Placeholder> | <Placeholder> | <Placeholder> |
@@ -790,34 +790,40 @@ Search for anomalous `rundll32.exe` executions, especially:
 <summary id="-flag-14">🚩 <strong>Flag 14: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+Deliver and stage the malicious payload by extracting a downloaded archive into the user’s profile for execution.
 
 ### 📌 Finding
-<High-level description of the activity>
+The user opened a downloaded archive, which was extracted using `7zG.exe` into a folder within the Downloads directory. This step staged the malicious DLL (`review.dll`) prior to execution via `rundll32.exe`.
 
 ### 🔍 Evidence
 
 | Field | Value |
 |------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Host | EC2AMAZ-B9GHHO6.emberforge.local |
+| Timestamp | 2026-01-30 21:24:04.656 UTC |
+| Process | 7zG.exe |
+| Parent Process | explorer.exe |
+| Command Line | "C:\Program Files\7-Zip\7zG.exe" x -o"C:\Users\lmartin.EMBERFORGE\Downloads\EmberForge_Review\" ... |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+This shows the critical staging phase before execution, where the attacker relied on user interaction to extract malicious content. By placing files in a trusted user directory (Downloads), the attacker increases the likelihood of execution and reduces suspicion. This step directly enabled the subsequent DLL execution and marks a key transition from delivery to execution in the attack chain.
 
 ### 🔧 KQL Query Used
-<Add KQL here>
+EmberForgeX_CL
+| where Computer == "EC2AMAZ-B9GHHO6.emberforge.local"
+| where todatetime(UtcTime_s) between (datetime(2026-01-30 21:15:00) .. datetime(2026-01-30 21:27:03))
+| where CommandLine_s has_any ("7z", "WinRAR", "rar.exe", "7zFM.exe", "7zG.exe", "tar.exe", "Expand-Archive", ".zip", ".iso", ".img")
+| project UtcTime_s, Computer, CommandLine_s
+| order by todatetime(UtcTime_s) asc
 
 ### 🖼️ Screenshot
-<Insert screenshot>
+<img width="2020" height="682" alt="image" src="https://github.com/user-attachments/assets/c57395e9-7d72-4ab0-a899-f780df1d2469" />
 
 ### 🛠️ Detection Recommendation
+Monitor archive extraction activity from user directories, especially Downloads, and alert on tools like `7zG.exe`, `WinRAR`, or built-in extraction utilities. Correlate archive extraction events with subsequent process executions from the same directory.
 
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+Search for archive extraction tools and pivot to the destination folder. Then investigate any executable or DLL activity from that folder within a short time window—this often reveals staged payload execution.
 
 </details>
 
