@@ -135,7 +135,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | 14 | MITRE ATT&CK: T1204.002 – User Execution (Malicious File) | T1204 – User Execution.| <Placeholder> |
 | 15 | MITRE ATT&CK: T1053.005 – Scheduled Task | T1053.005 – Scheduled Task| <Placeholder> |
 | 16 | MITRE ATT&CK: T1071.004 – Application Layer Protocol: DNS | T1071 – Application Layer Protocol. | <Placeholder> |
-| 17 | <Placeholder> | <Placeholder> | <Placeholder> |
+| 17 | MITRE ATT&CK: T1071.004 – Application Layer Protocol: DNS | T1071 – Application Layer Protocol. | <Placeholder> |
 | 18 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 19 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 20 | <Placeholder> | <Placeholder> | <Placeholder> |
@@ -922,34 +922,39 @@ Aggregate DNS queries and look for domains with high frequency across hosts that
 <summary id="-flag-17">🚩 <strong>Flag 17: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+Resolve attacker-controlled domains to IP addresses to enable outbound communication for command-and-control (C2) and data exfiltration.
 
 ### 📌 Finding
-<High-level description of the activity>
+DNS queries to `cdn.cloud-endpoint.net` were resolved to the IP address `104.21.30.237`, confirming the infrastructure used by the attacker for communication.
 
 ### 🔍 Evidence
 
 | Field | Value |
 |------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Host | EC2AMAZ-B9GHHO6.emberforge.local |
+| Timestamp | 2026-01-30 21:XX:XX UTC |
+| Process | update.exe (likely) |
+| Parent Process | schtasks.exe / cmd.exe |
+| Command Line | N/A (DNS resolution observed via Sysmon EventCode 22 Raw_s parsing) |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+Resolving the malicious domain to a concrete IP (`104.21.30.237`) provides a high-confidence indicator of compromise that can be used for blocking and threat intelligence. It bridges the gap between DNS-based detection and network-level controls, allowing defenders to identify and stop active communication with attacker infrastructure. This is critical for containment and preventing further command-and-control activity.
 
 ### 🔧 KQL Query Used
-<Add KQL here>
+EmberForgeX_CL
+| where todatetime(UtcTime_s) between (datetime(2026-01-30 21:00:00) .. datetime(2026-01-31 00:00:00))
+| where Image_s == @"C:\Windows\System32\rundll32.exe" or Image_s == @"C:\Users\Public\update.exe"
+| summarize count() by DestinationIp_s
+| order by count_ desc
 
 ### 🖼️ Screenshot
-<Insert screenshot>
+<img width="1756" height="710" alt="image" src="https://github.com/user-attachments/assets/76d84ea5-ecc2-45e7-acef-cf08e041d318" />
 
 ### 🛠️ Detection Recommendation
+Parse and monitor Sysmon Event ID 22 (`Raw_s`) to extract resolved IP addresses and correlate them with suspicious domains. Block known malicious IPs at the network perimeter and integrate threat intelligence feeds to detect connections to attacker infrastructure.
 
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+When investigating DNS activity, don’t stop at the domain—parse the `QueryResults` field to uncover resolved IPs. Pivot from domains to IPs and look for repeated connections or high-volume traffic to identify active C2 channels.
 
 </details>
 
