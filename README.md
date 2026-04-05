@@ -121,7 +121,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | 0 | MITRE ATT&CK: N/A (Analyst validation step – not adversary activity)| TA0007 – Discovery | Data/Environment Discovery” (analyst-side equivalent, not attacker action) |
 | 1 | MITRE ATT&CK: T1560 – Archive Collected Data | T1560 Archive Collected Data. | <Placeholder> |
 | 2 | MITRE ATT&CK: T1567.002 – Exfiltration to Cloud Storage | T1567 – Exfiltration Over Web Service. | <Placeholder> |
-| 3 | <Placeholder> | <Placeholder> | <Placeholder> |
+| 3 | MITRE ATT&CK: T1552.001 – Credentials in Files| T1552 – Unsecured Credentials. | <Placeholder> |
 | 4 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 5 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 6 | <Placeholder> | <Placeholder> | <Placeholder> |
@@ -303,34 +303,40 @@ Search for command-line patterns that include both a local source path and a rem
 <summary id="-flag-3">🚩 <strong>Flag 3: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+Configure the exfiltration tool with authentication credentials to enable data transfer to a remote cloud storage service.
 
 ### 📌 Finding
-<High-level description of the activity>
+The attacker exposed authentication details in the command line while configuring `rclone`, revealing the email account used to access the cloud storage provider.
+
 
 ### 🔍 Evidence
 
 | Field | Value |
 |------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Host | EC2AMAZ-16V3AU4.emberforge.local |
+| Timestamp | 2026-01-30 23:12:36.922 UTC |
+| Process | cmd.exe |
+| Parent Process | Unknown |
+| Command Line | cmd.exe /c "echo user = jwilson.vhr@proton.me>> C:\Users\Public\rclone.conf" |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+This reveals a critical OPSEC failure by the attacker—credentials were exposed directly in process command-line logs. The email `jwilson.vhr@proton.me` ties the activity to a specific account used for exfiltration, providing a valuable attribution lead. It also demonstrates how sensitive data (credentials) can be inadvertently logged, enabling defenders to detect, investigate, and potentially block unauthorized access to cloud storage services.
 
 ### 🔧 KQL Query Used
-<Add KQL here>
+EmberForgeX_CL
+| where todatetime(UtcTime_s) between (datetime(2026-01-30 21:00:00) .. datetime(2026-01-31 00:00:00))
+| where CommandLine_s has "rclone.conf"
+| project UtcTime_s, Computer, CommandLine_s
 
 ### 🖼️ Screenshot
-<Insert screenshot>
+<img width="1348" height="182" alt="image" src="https://github.com/user-attachments/assets/9e5f143a-b581-4b6d-a530-a2ae515824b6" />
+
 
 ### 🛠️ Detection Recommendation
+Enable and monitor command-line logging (e.g., Sysmon Event ID 1, Windows 4688) and create alerts for credential patterns written to files (e.g., `echo user =`, `password =`) and known exfil tools like `rclone.exe`. Flag executions from non-standard paths (e.g., `C:\Users\Public`) and correlate with file writes to config files (`*.conf`) and subsequent outbound connections to cloud services (e.g., MEGA).
 
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+Search for command lines containing `echo` + redirection (`>>`) to config files, especially alongside keywords like `user`, `token`, or `config`. Pivot from these events to nearby `rclone` executions and network activity to confirm credential setup followed by exfiltration.
 
 </details>
 
