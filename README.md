@@ -175,34 +175,35 @@ _All flags below are collapsible for readability._
 <summary id="-flag-1">🚩 <strong>Flag 1: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+Confirm access to the investigation environment and identify the primary data source.
 
 ### 📌 Finding
-<High-level description of the activity>
+The custom log table containing all investigation data is **EmberForgeX_CL**
 
 ### 🔍 Evidence
 
-| Field | Value |
-|------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Field        | Value            |
+|--------------|------------------|
+| Workspace    | law-cyber-range  |
+| Table Name   | EmberForgeX_CL   |
+| Log Sources  | Sysmon + Windows Security |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+Identifying the correct log table is critical to ensure all queries are executed against the complete dataset. Using the wrong table would result in missed telemetry and incomplete analysis.
 
 ### 🔧 KQL Query Used
-<Add KQL here>
+```kql
+search *
+| summarize count() by $table
 
 ### 🖼️ Screenshot
 <Insert screenshot>
 
 ### 🛠️ Detection Recommendation
+Standardize naming conventions for custom log tables and maintain clear documentation to ensure analysts consistently query the correct data source and avoid gaps in visibility.
 
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+Start every investigation by enumerating available tables and understanding their contents—this ensures you’re working with the full dataset before narrowing into specific activity.
 
 </details>
 
@@ -244,6 +245,7 @@ _All flags below are collapsible for readability._
 </details>
 
 ---
+
 <details>
 <summary id="-flag-3">🚩 <strong>Flag 3: <Technique Name></strong></summary>
 
@@ -649,7 +651,6 @@ _All flags below are collapsible for readability._
 
 </details>
 
-
 ---
 
 <details>
@@ -761,7 +762,6 @@ _All flags below are collapsible for readability._
 
 </details>
 
-
 ---
 
 <details>
@@ -836,7 +836,6 @@ _All flags below are collapsible for readability._
 
 </details>
 
-
 ---
 
 <details>
@@ -874,7 +873,6 @@ _All flags below are collapsible for readability._
 
 </details>
 
-
 ---
 
 <details>
@@ -911,7 +909,6 @@ _All flags below are collapsible for readability._
 <Actionable guidance for defenders>
 
 </details>
-
 
 ---
 
@@ -1134,7 +1131,6 @@ _All flags below are collapsible for readability._
 <Actionable guidance for defenders>
 
 </details>
-
 
 ---
 
@@ -1432,7 +1428,6 @@ _All flags below are collapsible for readability._
 
 </details>
 
-
 ---
 
 <details>
@@ -1617,7 +1612,6 @@ _All flags below are collapsible for readability._
 <Actionable guidance for defenders>
 
 </details>
-
 
 ---
 
