@@ -13,8 +13,7 @@
 
 ## 📌 Executive Summary
 
-<Brief, high-level overview of the threat hunt.  
-Answer what happened, why it matters, and what was discovered in 3–4 sentences.>
+A security breach was identified within EmberForge Studios, prompting a focused threat hunt in Microsoft Sentinel across multiple domain hosts. The investigation analyzed Sysmon and Windows Security telemetry to detect malicious execution patterns, suspicious command-line activity, and potential attacker footholds. This matters because it highlights how adversaries leverage native system tools to evade detection and move laterally. The hunt uncovered indicators of compromise tied to unauthorized downloads and execution, confirming active attacker behavior within the environment.
 
 ---
 
@@ -28,9 +27,27 @@ Answer what happened, why it matters, and what was discovered in 3–4 sentences
 
 ## 🧭 Scope & Environment
 
-- **Environment:** <Placeholder>  
-- **Data Sources:** <Placeholder>  
-- **Timeframe:** <YYYY-MM-DD → YYYY-MM-DD>  
+## Scope & Environment
+
+**Environment:**
+- Workspace: law-cyber-range  
+- Domain: emberforge.local  
+- Hosts:  
+  - Workstation: EC2AMAZ-B9GHHO6 (10.1.173.145)  
+  - Server: EC2AMAZ-16V3AU4 (10.1.57.66)  
+  - Domain Controller: EC2AMAZ-EEU3IA2 (10.1.160.76)  
+
+**Data Sources:**
+- Table: EmberForgeX_CL  
+- Log Sources: Sysmon (Operational) + Windows Security  
+- Coverage: Single table containing telemetry from all 3 hosts  
+
+**Timeframe:**
+- 2026-01-30 21:00 → 2026-01-31 00:00 UTC  
+
+**Notes:**
+- 3 endpoints with 5 evidence markers indicating suspicious activity  
+- Evidence markers (1–5) represent key points of attacker behavior to be identified during investigation  
 
 ---
 
