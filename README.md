@@ -145,7 +145,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | 24 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 25 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 26 | <Placeholder> | <Placeholder> | <Placeholder> |
-| 27 | <Placeholder> | <Placeholder> | <Placeholder> |
+| 27 | MITRE ATT&CK: T1021.002 – Remote Services: SMB/Windows Admin Shares | T1021 – Remote Services| <Placeholder> |
 | 28 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 29 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 30 | <Placeholder> | <Placeholder> | <Placeholder> |
@@ -1315,34 +1315,39 @@ Hunt Sysmon Event ID 11 for `.dmp` files, then pivot to the creating process and
 <summary id="-flag-27">🚩 <strong>Flag 27: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+Prepare for lateral movement by creating a network-accessible share to distribute tools and payloads across the environment.
 
 ### 📌 Finding
-<High-level description of the activity>
+The attacker created a network share named `tools` pointing to `C:\Users\Public` with full access granted to everyone, turning the compromised workstation into a distribution point.
 
 ### 🔍 Evidence
 
 | Field | Value |
 |------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Host | EC2AMAZ-B9GHHO6.emberforge.local |
+| Timestamp | 2026-01-30 22:51:36.903 UTC |
+| Process | net.exe |
+| Parent Process | cmd.exe |
+| Command Line | net share tools=C:\Users\Public /grant:everyone,full |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+Creating a share with `everyone,full` permissions is highly suspicious and enables unrestricted access to malicious tools like `update.exe`. This facilitates lateral movement by allowing other systems or compromised accounts to easily retrieve payloads, accelerating the spread of the attack across the network.
 
 ### 🔧 KQL Query Used
-<Add KQL here>
+EmberForgeX_CL
+| where todatetime(UtcTime_s) between (datetime(2026-01-30 21:00:00) .. datetime(2026-01-31 00:00:00))
+| where CommandLine_s has_any ("net share", "New-SmbShare", "icacls", "grant:Everyone", "grant:everyone")
+| project UtcTime_s, Computer, CommandLine_s
+| order by todatetime(UtcTime_s) asc
 
 ### 🖼️ Screenshot
-<Insert screenshot>
+<img width="1764" height="818" alt="image" src="https://github.com/user-attachments/assets/c291c878-7a98-4a33-93cc-2c676e05e234" />
 
 ### 🛠️ Detection Recommendation
+Monitor for creation or modification of network shares, especially those granting broad permissions (e.g., `everyone,full`). Alert on `net share` or `New-SmbShare` commands executed from user workstations and correlate with suspicious file activity in shared directories.
 
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+Search for share creation commands and pivot to the shared path. Investigate any executables placed in those directories and look for access from other hosts to identify lateral movement pathways.
 
 </details>
 
