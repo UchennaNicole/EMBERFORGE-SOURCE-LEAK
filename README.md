@@ -119,7 +119,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | Flag | Technique Category | MITRE ID | Priority |
 |-----:|-------------------|----------|----------|
 | 0 | MITRE ATT&CK: N/A (Analyst validation step – not adversary activity)| TA0007 – Discovery | Data/Environment Discovery” (analyst-side equivalent, not attacker action) |
-| 1 | MITRE ATT&CK: T1560 – Archive Collected Data | MITRE ATT&CK T1560 – Archive Collected Data. | <Placeholder> |
+| 1 | MITRE ATT&CK: T1560 – Archive Collected Data | Archive Collected Data. | <Placeholder> |
 | 2 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 3 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 4 | <Placeholder> | <Placeholder> | <Placeholder> |
