@@ -146,7 +146,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | 25 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 26 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 27 | MITRE ATT&CK: T1021.002 – Remote Services: SMB/Windows Admin Shares | T1021 – Remote Services| <Placeholder> |
-| 28 | <Placeholder> | <Placeholder> | <Placeholder> |
+| 28 | MITRE ATT&CK: T1562.004 – Impair Defenses: Modify System Firewall | T1562 – Impair Defenses.| <Placeholder> |
 | 29 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 30 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 31 | <Placeholder> | <Placeholder> | <Placeholder> |
@@ -1357,34 +1357,39 @@ Search for share creation commands and pivot to the shared path. Investigate any
 <summary id="-flag-28">🚩 <strong>Flag 28: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+Enable inbound network access required for lateral movement by modifying firewall rules.
 
 ### 📌 Finding
-<High-level description of the activity>
+A firewall rule named `SMB` was added using `netsh advfirewall` to allow inbound TCP traffic on port 445, enabling SMB communication.
 
 ### 🔍 Evidence
 
 | Field | Value |
 |------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Host | EC2AMAZ-B9GHHO6.emberforge.local |
+| Timestamp | 2026-01-30 22:54:09.901 UTC |
+| Process | cmd.exe |
+| Parent Process | update.exe / attacker-controlled process |
+| Command Line | cmd.exe /c "netsh advfirewall firewall add rule name=\"SMB\" dir=in action=allow protocol=tcp localport=445" |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+Opening port 445 allows SMB traffic, which is commonly used for lateral movement in Windows environments. By modifying firewall rules, the attacker ensures remote systems can connect to the compromised host, facilitating file sharing, tool transfer, and remote execution. This significantly increases the attacker's ability to spread across the network.
 
 ### 🔧 KQL Query Used
-<Add KQL here>
+EmberForgeX_CL
+| where todatetime(UtcTime_s) between (datetime(2026-01-30 21:00:00) .. datetime(2026-01-31 00:00:00))
+| where CommandLine_s has_any ("netsh advfirewall firewall add rule", "New-NetFirewallRule")
+| project UtcTime_s, Computer, CommandLine_s
+| order by todatetime(UtcTime_s) asc
 
 ### 🖼️ Screenshot
-<Insert screenshot>
+<img width="2076" height="794" alt="image" src="https://github.com/user-attachments/assets/755ae84a-70fe-4d46-bc0d-70802bcaf964" />
 
 ### 🛠️ Detection Recommendation
+Monitor for firewall rule changes using `netsh advfirewall` or PowerShell equivalents. Alert on rules that allow inbound access to sensitive ports (e.g., 445, 3389) and correlate with suspicious process activity or recent compromise indicators.
 
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+Search for command-line activity involving firewall modifications and pivot to newly opened ports. Investigate any correlation between firewall changes and subsequent inbound connections or lateral movement activity.
 
 </details>
 
