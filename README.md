@@ -192,12 +192,12 @@ The custom log table containing all investigation data is **EmberForgeX_CL**
 Identifying the correct log table is critical to ensure all queries are executed against the complete dataset. Using the wrong table would result in missed telemetry and incomplete analysis.
 
 ### 🔧 KQL Query Used
-```kql
-search *
-| summarize count() by $table
+EmberForgeX_CL 
+| take 10
 
 ### 🖼️ Screenshot
-<Insert screenshot>
+<img width="2302" height="858" alt="image" src="https://github.com/user-attachments/assets/c4f54ab0-6cec-46f4-95de-44a8a09bf95f" />
+
 
 ### 🛠️ Detection Recommendation
 Standardize naming conventions for custom log tables and maintain clear documentation to ensure analysts consistently query the correct data source and avoid gaps in visibility.
@@ -207,7 +207,7 @@ Start every investigation by enumerating available tables and understanding thei
 
 </details>
 
----
+___
 
 <details>
 <summary id="-flag-2">🚩 <strong>Flag 2: <Technique Name></strong></summary>
