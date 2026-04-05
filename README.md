@@ -133,7 +133,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | 12 | MITRE ATT&CK: T1204.002 – User Execution (Malicious File) | T1204 – User Execution. | <Placeholder> |
 | 13 | T1218.011 – Rundll32 – Signed Binary Proxy Execution: Rundll32| <Placeholder> | <Placeholder> |
 | 14 | MITRE ATT&CK: T1204.002 – User Execution (Malicious File) | T1204 – User Execution.| <Placeholder> |
-| 15 | <Placeholder> | <Placeholder> | <Placeholder> |
+| 15 | MITRE ATT&CK: T1053.005 – Scheduled Task | T1053.005 – Scheduled Task| <Placeholder> |
 | 16 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 17 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 18 | <Placeholder> | <Placeholder> | <Placeholder> |
@@ -833,34 +833,41 @@ Search for archive extraction tools and pivot to the destination folder. Then in
 <summary id="-flag-15">🚩 <strong>Flag 15: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+Establish persistence and maintain long-term access by deploying a reusable payload in a writable directory.
 
 ### 📌 Finding
-<High-level description of the activity>
+A malicious executable (`C:\Users\Public\update.exe`) was dropped in a world-writable directory and configured for persistence using scheduled tasks and registry modifications, becoming the attacker’s primary tool.
+
 
 ### 🔍 Evidence
 
 | Field | Value |
 |------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Host | EC2AMAZ-B9GHHO6.emberforge.local |
+| Timestamp | 2026-01-30 21:37:16.145 UTC |
+| Process | schtasks.exe |
+| Parent Process | cmd.exe |
+| Command Line | schtasks /create /tn WindowsUpdate /tr C:\Users\Public\update.exe /sc onstart /ru system |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+Placing `update.exe` in `C:\Users\Public` (a world-writable directory) allows easy access and execution while avoiding suspicion. The attacker ensured persistence via scheduled tasks and registry keys, enabling the payload to run on startup or user logon. This establishes a durable foothold, allowing continued access, lateral movement, and execution of further malicious actions.
 
 ### 🔧 KQL Query Used
-<Add KQL here>
+EmberForgeX_CL
+| where todatetime(UtcTime_s) between (datetime(2026-01-30 21:27:00) .. datetime(2026-01-30 22:00:00))
+| where Computer == "EC2AMAZ-B9GHHO6.emberforge.local"
+| where CommandLine_s contains "C:\\Users\\Public\\"
+| project UtcTime=todatetime(UtcTime_s), CommandLine_s
+| order by UtcTime asc
 
 ### 🖼️ Screenshot
-<Insert screenshot>
+<img width="1730" height="978" alt="image" src="https://github.com/user-attachments/assets/c6285756-772e-4655-b346-97c88796d3f6" />
 
 ### 🛠️ Detection Recommendation
+Monitor for executables created or executed from world-writable directories like `C:\Users\Public`. Alert on persistence mechanisms such as `schtasks` creation and suspicious registry modifications. Correlate file creation events with subsequent persistence activity.
 
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+Search for processes executing from `C:\Users\Public` or similar directories and pivot to persistence mechanisms like scheduled tasks or registry run keys. Look for newly created executables followed by immediate configuration for autorun.
 
 </details>
 
