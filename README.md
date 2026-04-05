@@ -136,7 +136,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | 15 | MITRE ATT&CK: T1053.005 – Scheduled Task | T1053.005 – Scheduled Task| <Placeholder> |
 | 16 | MITRE ATT&CK: T1071.004 – Application Layer Protocol: DNS | T1071 – Application Layer Protocol. | <Placeholder> |
 | 17 | MITRE ATT&CK: T1071.004 – Application Layer Protocol: DNS | T1071 – Application Layer Protocol. | <Placeholder> |
-| 18 | <Placeholder> | <Placeholder> | <Placeholder> |
+| 18 | MITRE ATT&CK: T1055 – Process Injection | T1055 – Process Injection. | <Placeholder> |
 | 19 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 20 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 21 | <Placeholder> | <Placeholder> | <Placeholder> |
@@ -964,34 +964,43 @@ When investigating DNS activity, don’t stop at the domain—parse the `QueryRe
 <summary id="-flag-18">🚩 <strong>Flag 18: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+Evade detection by injecting malicious code into a legitimate process to blend in with normal system activity.
 
 ### 📌 Finding
-<High-level description of the activity>
+The attacker used `rundll32.exe` to inject code into `notepad.exe`, indicating process injection via CreateRemoteThread (Sysmon Event ID 8).
 
 ### 🔍 Evidence
 
 | Field | Value |
 |------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Host | EC2AMAZ-B9GHHO6.emberforge.local |
+| Timestamp | 2026-01-30 21:32:42.708 UTC |
+| Process | rundll32.exe |
+| Parent Process | explorer.exe |
+| Command Line | "C:\Windows\System32\rundll32.exe" D:\review.dll,StartW |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+Process injection allows attackers to hide malicious activity inside trusted processes like `notepad.exe`, making detection significantly harder. This technique enables stealthy execution, persistence, and potential privilege escalation while bypassing traditional security tools that rely on process-based detection.
+
 
 ### 🔧 KQL Query Used
-<Add KQL here>
+EmberForgeX_CL
+| where EventCode_s == "8"
+| where Computer contains "B9GHHO6"
+| parse Raw_s with * "SourceImage'>" SourceImage "<" *
+| parse Raw_s with * "TargetImage'>" TargetImage "<" *
+| parse Raw_s with * "SourceUser'>" SourceUser "<" *
+| project UtcTime_s, SourceImage, TargetImage, SourceUser
+| sort by UtcTime_s asc
 
 ### 🖼️ Screenshot
-<Insert screenshot>
+<img width="1668" height="854" alt="image" src="https://github.com/user-attachments/assets/005ae479-034c-4b0a-9c65-cca5955c4132" />
 
 ### 🛠️ Detection Recommendation
+Monitor Sysmon Event ID 8 (CreateRemoteThread) and alert on unusual source-to-target process relationships, especially when system utilities like `rundll32.exe` inject into benign applications. Correlate with prior suspicious execution activity and user context.
 
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+Look for uncommon parent-child or injection relationships (e.g., `rundll32.exe` → `notepad.exe`). Pivot on Event ID 8 and investigate processes that do not normally interact, especially when tied to earlier malicious execution or user-triggered events.
 
 </details>
 
