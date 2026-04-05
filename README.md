@@ -56,6 +56,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 - [🧠 Hunt Overview](#-hunt-overview)
 - [🧬 MITRE ATT&CK Summary](#-mitre-attck-summary)
 - [🔍 Flag Analysis](#-flag-analysis)
+  - [🚩 Flag 0](#-flag-0)
   - [🚩 Flag 1](#-flag-1)
   - [🚩 Flag 2](#-flag-2)
   - [🚩 Flag 3](#-flag-3)
@@ -117,7 +118,8 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 
 | Flag | Technique Category | MITRE ID | Priority |
 |-----:|-------------------|----------|----------|
-| 1 | MITRE ATT&CK: N/A (Analyst validation step – not adversary activity)| TA0007 – Discovery | Data/Environment Discovery” (analyst-side equivalent, not attacker action) |
+| 0 | MITRE ATT&CK: N/A (Analyst validation step – not adversary activity)| TA0007 – Discovery | Data/Environment Discovery” (analyst-side equivalent, not attacker action) |
+| 1 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 2 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 3 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 4 | <Placeholder> | <Placeholder> | <Placeholder> |
@@ -172,7 +174,7 @@ _All flags below are collapsible for readability._
 ---
 
 <details>
-<summary id="-flag-1">🚩 <strong>Flag 1: <Technique Name></strong></summary>
+<summary id="-flag-0">🚩 <strong>Flag 0: <Technique Name></strong></summary>
 
 ### 🎯 Objective
 Confirm access to the investigation environment and identify the primary data source.
@@ -204,6 +206,44 @@ Standardize naming conventions for custom log tables and maintain clear document
 
 **Hunting Tip:**  
 Start every investigation by enumerating available tables and understanding their contents—this ensures you’re working with the full dataset before narrowing into specific activity.
+
+</details>
+
+---
+
+
+<details>
+<summary id="-flag-1">🚩 <strong>Flag 1: <Technique Name></strong></summary>
+
+### 🎯 Objective
+<What the attacker was trying to accomplish>
+
+### 📌 Finding
+<High-level description of the activity>
+
+### 🔍 Evidence
+
+| Field | Value |
+|------|-------|
+| Host | <Placeholder> |
+| Timestamp | <Placeholder> |
+| Process | <Placeholder> |
+| Parent Process | <Placeholder> |
+| Command Line | <Placeholder> |
+
+### 💡 Why it matters
+<Explain impact, risk, and relevance>
+
+### 🔧 KQL Query Used
+<Add KQL here>
+
+### 🖼️ Screenshot
+<Insert screenshot>
+
+### 🛠️ Detection Recommendation
+
+**Hunting Tip:**  
+<Actionable guidance for defenders>
 
 </details>
 
