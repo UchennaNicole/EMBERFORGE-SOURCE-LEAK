@@ -1990,10 +1990,14 @@ EmberForgeX_CL
 <Explain impact, risk, and relevance>
 
 ### 🔧 KQL Query Used
-<Add KQL here>
+EmberForgeX_CL
+| where EventCode_s == "1"
+| where CommandLine_s has_any ("service.conf", "AnyDesk.conf", "ProgramData\\AnyDesk")
+| project UtcTime_s, Computer, Image_s, CommandLine_s
+| sort by UtcTime_s asc
 
 ### 🖼️ Screenshot
-<Insert screenshot>
+<img width="1394" height="904" alt="image" src="https://github.com/user-attachments/assets/5f2e8474-a583-4b4c-b85d-ecaac2b0eb99" />
 
 ### 🛠️ Detection Recommendation
 
