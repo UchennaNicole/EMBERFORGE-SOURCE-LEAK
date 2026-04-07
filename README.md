@@ -157,7 +157,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | 36 | MITRE ATT&CK: T1136.002 – Create Account: Domain Account |  TA0003 – Persistence & TA0004 – Privilege Escalation  | <Placeholder> |
 | 37 | MITRE ATT&CK: T1136.002 – Create Account: Domain Account | T1552.001 – Unsecured Credentials: Credentials in Command Line & TA0003 – Persistence & TA0006 – Credential Access | <Placeholder> |
 | 38 | MITRE ATT&CK: T1098 – Account Manipulation | T1078 – Valid Accounts & TA0004 – Privilege Escalation & TA0003 – Persistence | <Placeholder> |
-| 39 | <Placeholder> | <Placeholder> | <Placeholder> |
+| 39 | MITRE ATT&CK: T1021.002 – Remote Services: SMB/Windows Admin Shares | T1078 – Valid Accounts & T1552.001 – Unsecured Credentials: | <Placeholder> |
 | 40 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 41 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 42 | <Placeholder> | <Placeholder> | <Placeholder> |
@@ -2089,23 +2089,27 @@ EmberForgeX_CL
 <summary id="-flag-39">🚩 <strong>Flag 39: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+Establish authenticated access to a remote system (Domain Controller) by mapping a network drive using valid credentials, enabling lateral movement and tool staging.
 
 ### 📌 Finding
-<High-level description of the activity>
+The attacker executed a `net use` command from a SYSTEM-level process to map a network share (Z:) on the Domain Controller using plaintext administrative credentials embedded directly in the command line.
 
 ### 🔍 Evidence
 
 | Field | Value |
 |------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Host | EC2AMAZ-16V3AU4.emberforge.local |
+| Timestamp | 2026-01-30 23:45:25.132 |
+| Process | C:\Windows\System32\net.exe |
+| Parent Process | C:\Windows\System32\cmd.exe |
+| Command Line | net use Z: \\10.1.173.145\tools /user:EMBERFORGE\Administrator EmberForge2024! |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+This is a critical OPSEC failure and high-risk behavior:
+- Credentials are exposed in **plaintext**, making them easily recoverable from logs (SIEM, EDR, command-line auditing).
+- The attacker is leveraging **valid domain admin credentials**, indicating full compromise of privileged access.
+- Mapping a network drive enables **tool transfer, staging, and execution**, accelerating lateral movement and domain-wide impact.
+- This demonstrates a shift from initial compromise → **full domain control and operational expansion**.
 
 ### 🔧 KQL Query Used
 EmberForgeX_CL
@@ -2126,9 +2130,15 @@ EmberForgeX_CL
 <img width="1850" height="1036" alt="image" src="https://github.com/user-attachments/assets/bd2759f8-1d4f-4c6a-b3cb-ff4fca3a3f3c" />
 
 ### 🛠️ Detection Recommendation
+- Monitor for `net.exe` usage with `/user:` and password arguments in command-line logs.
+- Alert on **plaintext credential exposure in process command lines**.
+- Detect **network share mappings (Event ID 4624 Logon Type 3 + net use patterns)**.
+- Correlate SYSTEM-level processes initiating outbound SMB connections.
+- Implement **credential hygiene controls** (disable command-line credential usage, enforce secure alternatives like Kerberos).
 
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+`kql
+EventCode=1 AND CommandLine contains "net use" AND CommandLine contains "/user:"
 
 </details>
 
