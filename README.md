@@ -160,7 +160,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | 40 | MITRE ATT&CK: T1053.005 – Scheduled Task/Job: Scheduled Task | T1036 – Masquerading & T1547 – Boot or Logon Autostart Execution | <Placeholder> |
 | 41 | MITRE ATT&CK: T1219 – Remote Access Software | T1105 – Ingress Tool Transfer & T1036 – Masquerading & T1547 – Boot or Logon Autostart Execution  | <Placeholder> |
 | 42 | MITRE ATT&CK: T1562.001 – Impair Defenses: Disable or Modify Tools | T1219 – Remote Access Software & T1543 / T1547 & T1027 – Obfuscated/Hidden Files | <Placeholder> |
-| 43 | <Placeholder> | <Placeholder> | <Placeholder> |
+| 43 | MITRE ATT&CK: T1070.001 – Indicator Removal on Host: Clear Windows Event Logs | T1070 – Indicator Removal on Host & T1562.001 – Impair Defenses | <Placeholder> |
 | 44 | <Placeholder> | <Placeholder> | <Placeholder> |
 
 ---
@@ -2313,34 +2313,55 @@ EventCode=1 AND CommandLine contains "system.conf"
 <summary id="-flag-43">🚩 <strong>Flag 43: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+Erase forensic evidence and evade detection by clearing Windows event logs on the Domain Controller.
 
 ### 📌 Finding
-<High-level description of the activity>
+Erase forensic evidence and evade detection by clearing Windows event logs on the Domain Controller.
 
 ### 🔍 Evidence
 
 | Field | Value |
 |------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Host | EC2AMAZ-EEU3IA2.emberforge.local |
+| Timestamp | 2026-01-30 23:50:50.010 |
+| Process | C:\Windows\System32\wevtutil.exe |
+| Parent Process | C:\Windows\System32\cmd.exe |
+| Command Line | wevtutil cl Security |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+- Clearing logs is a **direct anti-forensics technique** used to cover attacker tracks.
+- The **Security log** is one of the most critical sources for:
+  - Authentication events
+  - Privilege changes
+  - Lateral movement evidence
+- Indicates the attacker has reached a **late-stage intrusion phase** (post-compromise cleanup).
+- Strong indicator of **high confidence malicious activity** and potential full domain compromise.
+- Severely impacts **incident response, detection, and root cause analysis**.
 
 ### 🔧 KQL Query Used
-<Add KQL here>
+EmberForgeX_CL
+| where EventCode_s == "1"
+| where Computer contains "EC2AMAZ-EEU3IA2"
+| where Image_s contains "wevtutil"
+| project UtcTime_s, Computer, User_s, Image_s, CommandLine_s, ParentImage_s
+| sort by UtcTime_s asc
 
 ### 🖼️ Screenshot
-<Insert screenshot>
+<img width="2198" height="888" alt="image" src="https://github.com/user-attachments/assets/d39dbbc8-dbb2-45bc-83d2-4edcab802ca6" />
 
 ### 🛠️ Detection Recommendation
+- Clearing logs is a **direct anti-forensics technique** used to cover attacker tracks.
+- The **Security log** is one of the most critical sources for:
+  - Authentication events
+  - Privilege changes
+  - Lateral movement evidence
+- Indicates the attacker has reached a **late-stage intrusion phase** (post-compromise cleanup).
+- Strong indicator of **high confidence malicious activity** and potential full domain compromise.
+- Severely impacts **incident response, detection, and root cause analysis**.
 
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+`kql
+EventCode=1 AND Image endswith "wevtutil.exe" AND CommandLine contains "cl"
 
 </details>
 
