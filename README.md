@@ -122,7 +122,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | 1 | MITRE ATT&CK: T1560 – Archive Collected Data | T1560 Archive Collected Data. | <Placeholder> |
 | 2 | MITRE ATT&CK: T1567.002 – Exfiltration to Cloud Storage | T1567 – Exfiltration Over Web Service. | <Placeholder> |
 | 3 | MITRE ATT&CK: T1552.001 – Credentials in Files| T1552 – Unsecured Credentials. | <Placeholder> |
-| 4 | <Placeholder> | <Placeholder> | <Placeholder> |
+| 4 | MITRE ATT&CK: T1003.003 – OS Credential Dumping (NTDS) | <T1003 – OS Credential Dumping. | <Placeholder> |
 | 5 | MITRE ATT&CK: T1567.002 – Exfiltration to Cloud Storage| T1567 – Exfiltration Over Web Service.| <Placeholder> |
 | 6 | MITRE ATT&CK: T1041 – Exfiltration Over C2 Channel | T1041 – Exfiltration Over C2 Channel | <Placeholder> |
 | 7 | MITRE ATT&CK: T1552.003 – Credentials in Command Line | T1552 – Unsecured Credentials. | <Placeholder> |
@@ -346,34 +346,40 @@ Search for command lines containing `echo` + redirection (`>>`) to config files,
 <summary id="-flag-4">🚩 <strong>Flag 4: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+Access the Domain Controller’s Active Directory database by using volume shadow copy techniques to bypass file locks and obtain domain credentials.
 
 ### 📌 Finding
-<High-level description of the activity>
+The attacker used `vssadmin` and related command execution on the Domain Controller to access `ntds.dit`, the Active Directory database file that stores credential data for the domain.
 
 ### 🔍 Evidence
 
 | Field | Value |
 |------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Host | EC2AMAZ-EEU3IA2.emberforge.local |
+| Timestamp | 2026-01-30 23:34:56.018 UTC |
+| Process | cmd.exe |
+| Parent Process | services.exe |
+| Command Line | C:\Windows\system32\cmd.exe /Q /c echo C:\Windows\system32\cmd.exe /c {vssadmin list shadows /for=C: ^&gt; C:\Windows\Temp\__output.bat ...} |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+Accessing `ntds.dit` is a critical escalation step because it contains credential material for every account in the domain, including highly privileged users. By using volume shadow copy methods, the attacker can bypass file locks on the live database and extract credentials offline. This can lead to full domain compromise, persistence, privilege escalation, and widespread lateral movement.
 
 ### 🔧 KQL Query Used
-<Add KQL here>
+EmberForgeX_CL
+| where todatetime(UtcTime_s) between (datetime(2026-01-30 21:00:00) .. datetime(2026-01-31 00:00:00))
+| where Computer == "EC2AMAZ-EEU3IA2.emberforge.local"
+| where CommandLine_s has_any ("vssadmin", "ntdsutil", "ntds.dit", "shadow")
+| project UtcTime_s, Computer, User_s, Image_s, CommandLine_s, ParentImage_s
+| order by todatetime(UtcTime_s) asc
 
 ### 🖼️ Screenshot
-<Insert screenshot>
+<img width="1486" height="788" alt="image" src="https://github.com/user-attachments/assets/aa0301f7-8343-4770-8686-53b1bad30852" />
 
 ### 🛠️ Detection Recommendation
+Monitor for `vssadmin`, `wmic shadowcopy`, `diskshadow`, and related commands on Domain Controllers, especially when followed by access to `ntds.dit` or files under `C:\Windows\NTDS\`. Alert on shadow copy creation, listing, and deletion activity outside approved backup operations, and correlate with suspicious `cmd.exe` or service-based execution.
 
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+On Domain Controllers, hunt for shadow copy activity first, then pivot to commands referencing `ntds.dit`, `SYSTEM`, or temporary output files in `C:\Windows\Temp`. Sequences of `create shadow`, `list shadows`, and cleanup commands often indicate credential theft rather than legitimate administration.
 
 </details>
 
