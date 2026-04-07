@@ -158,7 +158,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | 37 | MITRE ATT&CK: T1136.002 – Create Account: Domain Account | T1552.001 – Unsecured Credentials: Credentials in Command Line & TA0003 – Persistence & TA0006 – Credential Access | <Placeholder> |
 | 38 | MITRE ATT&CK: T1098 – Account Manipulation | T1078 – Valid Accounts & TA0004 – Privilege Escalation & TA0003 – Persistence | <Placeholder> |
 | 39 | MITRE ATT&CK: T1021.002 – Remote Services: SMB/Windows Admin Shares | T1078 – Valid Accounts & T1552.001 – Unsecured Credentials: | <Placeholder> |
-| 40 | <Placeholder> | <Placeholder> | <Placeholder> |
+| 40 | MITRE ATT&CK: T1053.005 – Scheduled Task/Job: Scheduled Task | T1036 – Masquerading & T1547 – Boot or Logon Autostart Execution | <Placeholder> |
 | 41 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 42 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 43 | <Placeholder> | <Placeholder> | <Placeholder> |
@@ -2148,23 +2148,26 @@ EventCode=1 AND CommandLine contains "net use" AND CommandLine contains "/user:"
 <summary id="-flag-40">🚩 <strong>Flag 40: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+Establish persistence on the compromised system to ensure the attacker's payload executes automatically after reboot and maintains long-term access.
 
 ### 📌 Finding
-<High-level description of the activity>
+The attacker created a scheduled task named **"WindowsUpdate"** to execute a malicious payload (`update.exe`) from a public directory. The task was configured to run as SYSTEM at system startup, mimicking a legitimate Windows process to evade detection.
 
 ### 🔍 Evidence
 
 | Field | Value |
 |------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Host | EC2AMAZ-16V3AU4.emberforge.local |
+| Timestamp | 2026-01-30 23:47:38.302 |
+| Process | C:\Windows\System32\schtasks.exe |
+| Parent Process | C:\Windows\System32\cmd.exe |
+| Command Line | schtasks /create /tn "WindowsUpdate" /tr "C:\Users\Public\update.exe" /sc onstart /ru system |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+- This establishes **persistent access**, allowing the attacker to regain execution after reboot.
+- The task name **"WindowsUpdate"** is designed to blend in with legitimate system tasks, reducing the likelihood of detection.
+- Running as **SYSTEM** gives the payload the highest level of privilege.
+- This indicates the attacker has moved from **lateral movement → persistence**, solidifying control over the environment.
 
 ### 🔧 KQL Query Used
 EmberForgeX_CL
@@ -2185,9 +2188,16 @@ EmberForgeX_CL
 <img width="2296" height="1192" alt="image" src="https://github.com/user-attachments/assets/bfb0e668-6902-47d3-908f-ebb4dfb1838d" />
 
 ### 🛠️ Detection Recommendation
+- Monitor for **scheduled task creation** (Event ID 4698, Sysmon Event ID 1/13).
+- Alert on tasks created with:
+  - Suspicious names mimicking Windows services (e.g., *WindowsUpdate*, *MicrosoftUpdate*)
+  - Execution paths in **user-writable directories** (e.g., `C:\Users\Public\`)
+- Track use of `schtasks.exe` with `/create` and `/ru system`.
+- Implement allowlisting for scheduled task creation.
 
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+`kql
+EventCode=1 AND Image endswith "schtasks.exe" AND CommandLine contains "/create"
 
 </details>
 
