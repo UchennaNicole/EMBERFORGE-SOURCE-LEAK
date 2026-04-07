@@ -148,7 +148,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | 27 | MITRE ATT&CK: T1021.002 – Remote Services: SMB/Windows Admin Shares | T1021 – Remote Services| <Placeholder> |
 | 28 | MITRE ATT&CK: T1562.004 – Impair Defenses: Modify System Firewall | T1562 – Impair Defenses.| <Placeholder> |
 | 29 | MITRE ATT&CK: T1055 – Process Injection | T1055 – Process Injection | <Placeholder> |
-| 30 | <Placeholder> | <Placeholder> | <Placeholder> |
+| 30 | MITRE ATT&CK: T1021.002 – SMB/Windows Admin Shares | T1021 – Remote Services | <Placeholder> |
 | 31 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 32 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 33 | <Placeholder> | <Placeholder> | <Placeholder> |
@@ -1508,34 +1508,53 @@ Baseline normal behavior of critical Windows services (like `spoolsv.exe`). Any 
 <summary id="-flag-30">🚩 <strong>Flag 30: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+Transfer the attacker’s primary payload to a remote system to enable lateral movement and establish execution on another host.
 
 ### 📌 Finding
-<High-level description of the activity>
+The attacker used Windows administrative shares (C$) to copy a malicious executable (`update.exe`) from the compromised workstation to a remote server, indicating active lateral movement.
 
 ### 🔍 Evidence
 
 | Field | Value |
 |------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Host | EC2AMAZ-B9GHHO6.emberforge.local |
+| Timestamp | 2026-01-30 22:14:55.324 UTC |
+| Process | cmd.exe |
+| Parent Process | spoolsv.exe |
+| Command Line | cmd.exe /c copy C:\Users\Public\update.exe \\10.1.57.66\C$\Users\Public\update.exe |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+Administrative shares (like C$) are built-in Windows features typically used by administrators. Attackers abuse them to:
+- Move payloads across systems without dropping new tools
+- Blend in with legitimate admin activity
+- Expand their foothold across the network
+
+This confirms **lateral movement is in progress** and that the attacker has sufficient privileges (likely SYSTEM or admin-level access) to access remote systems.
 
 ### 🔧 KQL Query Used
-<Add KQL here>
+EmberForgeX_CL
+| where EventCode_s == "1"
+| where Computer contains "EC2AMAZ-B9GHHO6"
+| where CommandLine_s contains "C$" and CommandLine_s contains "copy"
+| project UtcTime_s, Computer, User_s, Image_s, CommandLine_s, ParentImage_s
+| sort by UtcTime_s asc
 
 ### 🖼️ Screenshot
-<Insert screenshot>
+<img width="2290" height="892" alt="image" src="https://github.com/user-attachments/assets/a09128d8-9fcd-49fd-b037-145a1f451457" />
 
 ### 🛠️ Detection Recommendation
-
+Monitor for:
+- Use of `copy`, `xcopy`, or `robocopy` targeting `\\*\C$` paths
+- Remote file writes to admin shares
+- Command execution involving UNC paths from non-admin endpoints
+- SYSTEM-level processes performing network file transfers
+Correlate with:
+- Prior privilege escalation
+- Network share creation
+- Firewall rule modifications
+  
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+Search for patterns involving `\\*\C$` combined with file copy operations. When paired with SYSTEM context and unusual parent processes (like `spoolsv.exe`), this is a high-confidence indicator of malicious lateral movement.
 
 </details>
 
