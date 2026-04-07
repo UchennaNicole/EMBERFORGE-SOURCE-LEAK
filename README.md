@@ -159,7 +159,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | 38 | MITRE ATT&CK: T1098 – Account Manipulation | T1078 – Valid Accounts & TA0004 – Privilege Escalation & TA0003 – Persistence | <Placeholder> |
 | 39 | MITRE ATT&CK: T1021.002 – Remote Services: SMB/Windows Admin Shares | T1078 – Valid Accounts & T1552.001 – Unsecured Credentials: | <Placeholder> |
 | 40 | MITRE ATT&CK: T1053.005 – Scheduled Task/Job: Scheduled Task | T1036 – Masquerading & T1547 – Boot or Logon Autostart Execution | <Placeholder> |
-| 41 | <Placeholder> | <Placeholder> | <Placeholder> |
+| 41 | MITRE ATT&CK: T1219 – Remote Access Software | T1105 – Ingress Tool Transfer & T1036 – Masquerading & T1547 – Boot or Logon Autostart Execution  | <Placeholder> |
 | 42 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 43 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 44 | <Placeholder> | <Placeholder> | <Placeholder> |
@@ -2207,34 +2207,49 @@ EventCode=1 AND Image endswith "schtasks.exe" AND CommandLine contains "/create"
 <summary id="-flag-41">🚩 <strong>Flag 41: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+Establish persistent remote access using a legitimate remote management tool to maintain control without relying on malware.
 
 ### 📌 Finding
-<High-level description of the activity>
+The attacker installed **AnyDesk**, a legitimate remote access software, by copying it from a staging location (`C:\Users\Public`) into `C:\ProgramData\AnyDesk\`. This enables stealthy, unattended access that blends in with normal administrative activity.
 
 ### 🔍 Evidence
 
 | Field | Value |
 |------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Host | EC2AMAZ-16V3AU4.emberforge.local |
+| Timestamp | 2026-01-30 23:09:38.930 |
+| Process | C:\Users\Public\AnyDesk.exe |
+| Parent Process | Unknown (likely cmd.exe or prior staged execution) |
+| Command Line | File copy/install activity placing AnyDesk into ProgramData |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+- **Living-off-the-land technique**: Using legitimate software reduces detection compared to malware.
+- Enables **persistent remote access** without needing exploits or backdoors.
+- Installed in `ProgramData`, a common location for legitimate applications → **blends in**.
+- Often used for **hands-on-keyboard access**, allowing attackers to operate interactively.
+- Can bypass traditional AV since the binary is trusted and signed.
 
 ### 🔧 KQL Query Used
-<Add KQL here>
+EmberForgeX_CL
+| where EventCode_s == "11"
+| where Computer contains "EC2AMAZ-16V3AU4"
+| where TargetFilename_s contains "AnyDesk"
+| project UtcTime_s, Computer, Image_s, TargetFilename_s
+| sort by UtcTime_s asc
 
 ### 🖼️ Screenshot
-<Insert screenshot>
+<img width="1736" height="830" alt="image" src="https://github.com/user-attachments/assets/6a1e0fe9-d5ff-400e-94d9-e25d8b3fc8de" />
 
 ### 🛠️ Detection Recommendation
+- **Living-off-the-land technique**: Using legitimate software reduces detection compared to malware.
+- Enables **persistent remote access** without needing exploits or backdoors.
+- Installed in `ProgramData`, a common location for legitimate applications → **blends in**.
+- Often used for **hands-on-keyboard access**, allowing attackers to operate interactively.
+- Can bypass traditional AV since the binary is trusted and signed.
 
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+`kql
+EventCode=11 AND TargetFilename contains "AnyDesk.exe"
 
 </details>
 
