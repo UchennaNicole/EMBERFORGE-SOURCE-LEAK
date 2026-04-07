@@ -156,7 +156,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | 35 | MITRE ATT&CK: T1033 – System Owner/User Discovery (whoami) | T1003.003 – OS Credential Dumping: NTDS & T1490 – Inhibit System Recovery (Shadow Copy abuse) & TA0006 – Credential Access  | <Placeholder> |
 | 36 | MITRE ATT&CK: T1136.002 – Create Account: Domain Account |  TA0003 – Persistence & TA0004 – Privilege Escalation  | <Placeholder> |
 | 37 | MITRE ATT&CK: T1136.002 – Create Account: Domain Account | T1552.001 – Unsecured Credentials: Credentials in Command Line & TA0003 – Persistence & TA0006 – Credential Access | <Placeholder> |
-| 38 | <Placeholder> | <Placeholder> | <Placeholder> |
+| 38 | MITRE ATT&CK: T1098 – Account Manipulation | T1078 – Valid Accounts & TA0004 – Privilege Escalation & TA0003 – Persistence | <Placeholder> |
 | 39 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 40 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 41 | <Placeholder> | <Placeholder> | <Placeholder> |
@@ -2018,23 +2018,31 @@ EmberForgeX_CL
 <summary id="-flag-38">🚩 <strong>Flag 38: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+The attacker was attempting to **escalate privileges to full domain control** by adding a newly created account to a highly privileged Active Directory group.
 
 ### 📌 Finding
-<High-level description of the activity>
+The attacker executed a command to add the `svc_backup` account to the **Domain Admins** group, granting it **highest-level privileges across the domain**.
 
 ### 🔍 Evidence
 
 | Field | Value |
 |------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Host | EC2AMAZ-EEU3IA2.emberforge.local |
+| Timestamp | 2026-01-30 23:39:37.994 |
+| Process | C:\Windows\System32\net1.exe |
+| Parent Process | C:\Windows\System32\cmd.exe |
+| Command Line | C:\Windows\system32\net1 group "Domain Admins" svc_backup /add /domain |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+- Adding a user to **Domain Admins** grants:
+  - Full administrative control over all domain systems  
+  - Access to sensitive data, credentials, and infrastructure  
+- This represents **complete domain compromise**  
+- The attacker now has:
+  - Persistent privileged access  
+  - Ability to create additional backdoors or accounts  
+  - Capability to deploy malware or ransomware at scale  
+- This action is often one of the **final steps in an attack chain**, indicating successful escalation
 
 ### 🔧 KQL Query Used
 EmberForgeX_CL
@@ -2057,7 +2065,21 @@ EmberForgeX_CL
 ### 🛠️ Detection Recommendation
 
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+- Monitor for **Event ID 4728 / 4732 (group membership changes)**  
+- Alert on:
+  - Any additions to **Domain Admins**, Enterprise Admins, or other privileged groups  
+- Flag:
+  - Accounts recently created and quickly added to privileged groups  
+  - Changes initiated by:
+    - SYSTEM context  
+    - Non-administrative users  
+- Correlate with:
+  - Prior account creation (Event ID 4720)  
+  - Credential dumping or lateral movement activity  
+- Implement:
+  - Real-time alerts for privileged group changes  
+  - Just-In-Time (JIT) admin access controls  
+  - Privileged access reviews and monitoring  
 
 </details>
 
