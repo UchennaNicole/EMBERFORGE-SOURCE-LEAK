@@ -101,7 +101,6 @@ A security breach was identified within EmberForge Studios, prompting a focused 
   - [🚩 Flag 42](#-flag-42)
   - [🚩 Flag 43](#-flag-43)
   - [🚩 Flag 44](#-flag-44)
-  - [🚩 Flag 45](#-flag-45)
 - [🚨 Detection Gaps & Recommendations](#-detection-gaps--recommendations)
 - [🧾 Final Assessment](#-final-assessment)
 - [📎 Analyst Notes](#-analyst-notes)
@@ -163,7 +162,6 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | 42 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 43 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 44 | <Placeholder> | <Placeholder> | <Placeholder> |
-| 45 | <Placeholder> | <Placeholder> | <Placeholder> |
 
 ---
 
@@ -2383,42 +2381,6 @@ EventCode=1 AND CommandLine contains "system.conf"
 
 </details>
 
----
-
-<details>
-<summary id="-flag-45">🚩 <strong>Flag 45: <Technique Name></strong></summary>
-
-### 🎯 Objective
-<What the attacker was trying to accomplish>
-
-### 📌 Finding
-<High-level description of the activity>
-
-### 🔍 Evidence
-
-| Field | Value |
-|------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
-
-### 💡 Why it matters
-<Explain impact, risk, and relevance>
-
-### 🔧 KQL Query Used
-<Add KQL here>
-
-### 🖼️ Screenshot
-<Insert screenshot>
-
-### 🛠️ Detection Recommendation
-
-**Hunting Tip:**  
-<Actionable guidance for defenders>
-
-</details>
 
 ---
 
