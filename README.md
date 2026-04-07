@@ -159,7 +159,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | 39 | MITRE ATT&CK: T1021.002 – Remote Services: SMB/Windows Admin Shares | T1078 – Valid Accounts & T1552.001 – Unsecured Credentials: | <Placeholder> |
 | 40 | MITRE ATT&CK: T1053.005 – Scheduled Task/Job: Scheduled Task | T1036 – Masquerading & T1547 – Boot or Logon Autostart Execution | <Placeholder> |
 | 41 | MITRE ATT&CK: T1219 – Remote Access Software | T1105 – Ingress Tool Transfer & T1036 – Masquerading & T1547 – Boot or Logon Autostart Execution  | <Placeholder> |
-| 42 | <Placeholder> | <Placeholder> | <Placeholder> |
+| 42 | MITRE ATT&CK: T1562.001 – Impair Defenses: Disable or Modify Tools | T1219 – Remote Access Software & T1543 / T1547 & T1027 – Obfuscated/Hidden Files | <Placeholder> |
 | 43 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 44 | <Placeholder> | <Placeholder> | <Placeholder> |
 
