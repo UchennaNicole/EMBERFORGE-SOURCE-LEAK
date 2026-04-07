@@ -147,7 +147,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | 26 | MITRE ATT&CK: T1018 – Remote System Discovery | T1018 – Remote System Discovery | <Placeholder> |
 | 27 | MITRE ATT&CK: T1021.002 – Remote Services: SMB/Windows Admin Shares | T1021 – Remote Services| <Placeholder> |
 | 28 | MITRE ATT&CK: T1562.004 – Impair Defenses: Modify System Firewall | T1562 – Impair Defenses.| <Placeholder> |
-| 29 | <Placeholder> | <Placeholder> | <Placeholder> |
+| 29 | MITRE ATT&CK: T1055 – Process Injection | T1055 – Process Injection | <Placeholder> |
 | 30 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 31 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 32 | <Placeholder> | <Placeholder> | <Placeholder> |
@@ -1453,34 +1453,52 @@ Search for command-line activity involving firewall modifications and pivot to n
 <summary id="-flag-29">🚩 <strong>Flag 29: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+Maintain SYSTEM-level execution and use a trusted service process to perform lateral movement actions while blending in with normal system activity.
 
 ### 📌 Finding
-<High-level description of the activity>
+After privilege escalation, attacker activity (file copy, share creation, firewall modification) was executed under `spoolsv.exe`, indicating process migration into a trusted Windows service for stealth and persistence.
 
 ### 🔍 Evidence
 
 | Field | Value |
 |------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Host | EC2AMAZ-B9GHHO6.emberforge.local |
+| Timestamp | 2026-01-30 22:14:55.324 UTC |
+| Process | cmd.exe |
+| Parent Process | spoolsv.exe |
+| Command Line | cmd.exe /c copy C:\Users\Public\update.exe \\10.1.57.66\C$\Users\Public\update.exe |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+`spoolsv.exe` (Print Spooler service) runs as **NT AUTHORITY\SYSTEM** and is a trusted Windows process. By injecting or migrating into this process, the attacker:
+- Gains **high privileges**
+- Blends malicious activity with legitimate system behavior
+- Reduces likelihood of detection by EDR tools
+
+This is a strong indicator of **post-exploitation tradecraft**, where the attacker is maintaining control and preparing for lateral movement across the network.
 
 ### 🔧 KQL Query Used
-<Add KQL here>
+EmberForgeX_CL
+| where EventCode_s == "1"
+| where Computer contains "EC2AMAZ-B9GHHO6"
+| where CommandLine_s has_any ("net share", "copy", "netsh", "firewall", "xcopy", "robocopy")
+| project UtcTime_s, User_s, Image_s, CommandLine_s, ParentImage_s, ParentCommandLine_s
+| sort by UtcTime_s asc
 
 ### 🖼️ Screenshot
-<Insert screenshot>
+<img width="2286" height="880" alt="image" src="https://github.com/user-attachments/assets/7ceb02bb-bdfd-4a18-a7ca-79db0a06eac2" />
 
 ### 🛠️ Detection Recommendation
+Monitor for:
+- Non-print-related child processes spawned by `spoolsv.exe` (e.g., `cmd.exe`, `powershell.exe`)
+- Network activity originating from `spoolsv.exe`
+- Parent-child anomalies involving service processes
+
+Implement behavioral detection rules for:
+- SYSTEM processes spawning interactive shells
+- Suspicious command execution from service accounts
 
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+Baseline normal behavior of critical Windows services (like `spoolsv.exe`). Any deviation—especially spawning command shells or performing file transfers—is a high-confidence signal of compromise.
 
 </details>
 
