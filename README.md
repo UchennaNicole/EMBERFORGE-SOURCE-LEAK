@@ -144,7 +144,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | 23 | MITRE ATT&CK: T1003.001 – OS Credential Dumping (LSASS Memory)| T1003 – OS Credential Dumping. | <Placeholder> |
 | 24 | MITRE ATT&CK: T1087.002 – Account Discovery (Domain Account)| T1087 – Account Discovery | <Placeholder> |
 | 25 | MITRE ATT&CK: T1069.002 – Permission Groups Discovery (Domain Groups) | T1069 – Permission Groups Discovery. | <Placeholder> |
-| 26 | <Placeholder> | <Placeholder> | <Placeholder> |
+| 26 | MITRE ATT&CK: T1018 – Remote System Discovery | T1018 – Remote System Discovery | <Placeholder> |
 | 27 | MITRE ATT&CK: T1021.002 – Remote Services: SMB/Windows Admin Shares | T1021 – Remote Services| <Placeholder> |
 | 28 | MITRE ATT&CK: T1562.004 – Impair Defenses: Modify System Firewall | T1562 – Impair Defenses.| <Placeholder> |
 | 29 | <Placeholder> | <Placeholder> | <Placeholder> |
@@ -1324,34 +1324,42 @@ Track sequences of discovery: user enumeration → privileged group enumeration 
 <summary id="-flag-26">🚩 <strong>Flag 26: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+Identify Domain Controllers within the environment to target for lateral movement and potential domain takeover.
 
 ### 📌 Finding
-<High-level description of the activity>
+The attacker executed `nltest /dclist:emberforge.local` to enumerate all Domain Controllers in the domain, indicating reconnaissance of critical infrastructure.
 
 ### 🔍 Evidence
 
 | Field | Value |
 |------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Host | EC2AMAZ-B9GHHO6.emberforge.local |
+| Timestamp | 2026-01-30 21:35:07.115 UTC |
+| Process | nltest.exe |
+| Parent Process | rundll32.exe |
+| Command Line | nltest /dclist:emberforge.local |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+Domain Controllers are the backbone of Active Directory and store authentication services, policies, and credentials. By identifying these systems, the attacker is preparing for high-impact actions such as credential dumping (e.g., NTDS.dit extraction), privilege escalation, or full domain compromise. This step signals movement toward enterprise-wide control.
 
 ### 🔧 KQL Query Used
-<Add KQL here>
+EmberForgeX_CL
+| where EventCode_s == "1"
+| where Computer contains "EC2AMAZ-B9GHHO6"
+| where CommandLine_s has_any ("nltest", "net group \"Domain Controllers\"", "dsquery", "nslookup", "ping", "tracert", "netdom")
+| project UtcTime_s, Computer, User_s, Image_s, CommandLine_s
+| sort by UtcTime_s asc
 
 ### 🖼️ Screenshot
-<Insert screenshot>
+<img width="2226" height="888" alt="image" src="https://github.com/user-attachments/assets/60553d9c-f6d1-4321-994c-ddc285083c7c" />
 
 ### 🛠️ Detection Recommendation
+Monitor for execution of `nltest`, especially `/dclist` or `/domain_trusts`, on non-administrative systems. Correlate with prior discovery activity (user/group enumeration) and flag when executed by unusual parent processes (e.g., rundll32.exe).
 
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+Look for a progression pattern:  
+user enumeration → privilege group enumeration → domain controller discovery.  
+This sequence strongly indicates an attacker mapping the environment before lateral movement.
 
 </details>
 
