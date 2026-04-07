@@ -143,7 +143,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | 22 | MITRE ATT&CK: T1003.001 – OS Credential Dumping (LSASS Memory)| T1003.001 – LSASS Memory | <Placeholder> |
 | 23 | MITRE ATT&CK: T1003.001 – OS Credential Dumping (LSASS Memory)| T1003 – OS Credential Dumping. | <Placeholder> |
 | 24 | MITRE ATT&CK: T1087.002 – Account Discovery (Domain Account)| T1087 – Account Discovery | <Placeholder> |
-| 25 | <Placeholder> | <Placeholder> | <Placeholder> |
+| 25 | MITRE ATT&CK: T1069.002 – Permission Groups Discovery (Domain Groups) | T1069 – Permission Groups Discovery. | <Placeholder> |
 | 26 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 27 | MITRE ATT&CK: T1021.002 – Remote Services: SMB/Windows Admin Shares | T1021 – Remote Services| <Placeholder> |
 | 28 | MITRE ATT&CK: T1562.004 – Impair Defenses: Modify System Firewall | T1562 – Impair Defenses.| <Placeholder> |
@@ -1281,34 +1281,40 @@ Look for bursts of enumeration commands early in an attack chain. Pivot from the
 <summary id="-flag-25">🚩 <strong>Flag 25: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+Identify high-privilege accounts by enumerating members of the Domain Admins group to target for escalation or lateral movement.
 
 ### 📌 Finding
-<High-level description of the activity>
+The attacker executed `net group "Domain Admins" /domain` to list all users with Domain Admin privileges, indicating targeted reconnaissance of privileged accounts.
 
 ### 🔍 Evidence
 
 | Field | Value |
 |------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Host | EC2AMAZ-B9GHHO6.emberforge.local |
+| Timestamp | 2026-01-30 21:34:44.359 UTC |
+| Process | net.exe |
+| Parent Process | rundll32.exe |
+| Command Line | net group "Domain Admins" /domain |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+Domain Admin accounts have the highest level of control in an Active Directory environment. By identifying these users, the attacker can focus efforts on credential theft, privilege escalation, or lateral movement to achieve full domain compromise. This step is a strong indicator of intent to escalate privileges beyond the initial foothold.
 
 ### 🔧 KQL Query Used
-<Add KQL here>
+EmberForgeX_CL
+| where EventCode_s == "1"
+| where Computer contains "EC2AMAZ-B9GHHO6"
+| where CommandLine_s contains "Domain Admins" or CommandLine_s contains "net group"
+| project UtcTime_s, Computer, User_s, Image_s, CommandLine_s
+| sort by UtcTime_s asc
 
 ### 🖼️ Screenshot
-<Insert screenshot>
+<img width="2268" height="836" alt="image" src="https://github.com/user-attachments/assets/c5c9773d-db5f-4ae7-9ee7-ba97a1020a72" />
 
 ### 🛠️ Detection Recommendation
+Monitor for group enumeration commands such as `net group "Domain Admins" /domain`, `Get-ADGroupMember`, or `dsquery group`. Alert when executed from user workstations or unusual parent processes, and correlate with prior discovery or credential access activity.
 
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+Track sequences of discovery: user enumeration → privileged group enumeration → credential access. This progression often reveals an attacker moving methodically toward domain dominance.
 
 </details>
 
