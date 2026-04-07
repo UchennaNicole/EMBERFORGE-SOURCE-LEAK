@@ -155,7 +155,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | 34 | MITRE ATT&CK: T1110 – Brute Force | T1550.002 – Use of NTLM (Pass-the-Hash)& TA0008 – Lateral Movement | <Placeholder> |
 | 35 | MITRE ATT&CK: T1033 – System Owner/User Discovery (whoami) | T1003.003 – OS Credential Dumping: NTDS & T1490 – Inhibit System Recovery (Shadow Copy abuse) & TA0006 – Credential Access  | <Placeholder> |
 | 36 | MITRE ATT&CK: T1136.002 – Create Account: Domain Account |  TA0003 – Persistence & TA0004 – Privilege Escalation  | <Placeholder> |
-| 37 | <Placeholder> | <Placeholder> | <Placeholder> |
+| 37 | MITRE ATT&CK: T1136.002 – Create Account: Domain Account | T1552.001 – Unsecured Credentials: Credentials in Command Line & TA0003 – Persistence & TA0006 – Credential Access | <Placeholder> |
 | 38 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 39 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 40 | <Placeholder> | <Placeholder> | <Placeholder> |
@@ -1946,23 +1946,31 @@ EmberForgeX_CL
 <summary id="-flag-37">🚩 <strong>Flag 37: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+The attacker was attempting to **establish persistent domain access by creating a new user account with known credentials**, enabling future re-entry and control of the environment.
 
 ### 📌 Finding
-<High-level description of the activity>
+A domain account (`svc_backup`) was created using the `net user` command, with the **password exposed in plaintext within the command line**, indicating poor operational security and leaving sensitive credentials in logs.
 
 ### 🔍 Evidence
 
 | Field | Value |
 |------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Host | EC2AMAZ-EEU3IA2.emberforge.local |
+| Timestamp | 2026-01-30 23:38:11.786 |
+| Process | C:\Windows\System32\cmd.exe |
+| Parent Process | Likely services.exe (remote execution context) |
+| Command Line | net user svc_backup P@ssw0rd123! /add /domain |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+- The attacker created a **persistent foothold** within Active Directory  
+- The password was exposed in plaintext, meaning:
+  - It is now **permanently logged and recoverable**  
+  - Defenders can **pivot and identify reuse of the credential**  
+- Service-like naming (`svc_backup`) helps the account **blend in and evade detection**  
+- This indicates **full compromise of domain-level privileges**  
+- If not remediated, the attacker can:
+  - Re-enter the environment at any time  
+  - Escalate privileges or maintain long-term control  
 
 ### 🔧 KQL Query Used
 EmberForgeX_CL
@@ -1985,7 +1993,22 @@ EmberForgeX_CL
 ### 🛠️ Detection Recommendation
 
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+- Monitor for **Event ID 4720 (user account creation)**  
+- Alert on:
+  - `net user * /add /domain` executions  
+  - Command lines containing **plaintext passwords**  
+- Flag:
+  - Accounts with naming patterns like `svc_*`, `backup_*`, `admin_*`  
+  - Account creation from **SYSTEM context or non-admin endpoints**  
+- Correlate with:
+  - Prior suspicious activity (credential dumping, lateral movement)  
+  - Group membership changes (Event ID 4728, 4732)  
+- Immediately:
+  - Disable newly created suspicious accounts  
+  - Reset exposed credentials across the environment  
+- Enable:
+  - Command-line logging (Sysmon Event ID 1)  
+  - Sensitive string detection in logs  
 
 </details>
 
