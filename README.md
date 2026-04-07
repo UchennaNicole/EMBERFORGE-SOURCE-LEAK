@@ -2259,23 +2259,30 @@ EventCode=11 AND TargetFilename contains "AnyDesk.exe"
 <summary id="-flag-42">🚩 <strong>Flag 42: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+Modify the remote access tool configuration to enable persistent, stealthy, and possibly unattended access to the compromised system.
 
 ### 📌 Finding
-<High-level description of the activity>
+The attacker accessed and read the AnyDesk configuration file (`system.conf`) located in `C:\ProgramData\AnyDesk\`. This indicates they were inspecting or modifying settings to maintain control, such as enabling unattended access, setting passwords, or adjusting connection behavior.
 
 ### 🔍 Evidence
 
 | Field | Value |
 |------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Host | EC2AMAZ-B9GHH06.emberforge.local |
+| Timestamp | 2026-01-30 22:38:44.325 |
+| Process | C:\Windows\System32\cmd.exe |
+| Parent Process | Unknown (likely prior attacker-controlled process) |
+| Command Line | cmd.exe /c type C:\ProgramData\AnyDesk\system.conf |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+- Indicates **post-installation configuration abuse** of a legitimate remote access tool.
+- Attackers commonly modify this file to:
+  - Enable **unattended access**
+  - Set **hardcoded passwords**
+  - Disable prompts or logging
+- Stored in `ProgramData`, making it **persistent across users and reboots**.
+- This step transitions from tool deployment → **operational control and persistence hardening**.
+- Demonstrates **hands-on-keyboard activity**, not just automated execution.
 
 ### 🔧 KQL Query Used
 EmberForgeX_CL
@@ -2288,9 +2295,17 @@ EmberForgeX_CL
 <img width="1394" height="904" alt="image" src="https://github.com/user-attachments/assets/5f2e8474-a583-4b4c-b85d-ecaac2b0eb99" />
 
 ### 🛠️ Detection Recommendation
+- Monitor access to sensitive configuration files of remote tools (e.g., `AnyDesk`, `TeamViewer`).
+- Alert on command-line usage of:
+  - `type`, `more`, `cat` against `.conf` files in `ProgramData`
+- Track file modifications in:
+  - `C:\ProgramData\AnyDesk\`
+- Implement file integrity monitoring (FIM) for remote access tool configs.
+- Restrict and audit installation/use of unauthorized remote administration tools.
 
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+`kql
+EventCode=1 AND CommandLine contains "system.conf"
 
 </details>
 
