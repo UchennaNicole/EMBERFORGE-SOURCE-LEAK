@@ -161,7 +161,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | 41 | MITRE ATT&CK: T1219 – Remote Access Software | T1105 – Ingress Tool Transfer & T1036 – Masquerading & T1547 – Boot or Logon Autostart Execution  | <Placeholder> |
 | 42 | MITRE ATT&CK: T1562.001 – Impair Defenses: Disable or Modify Tools | T1219 – Remote Access Software & T1543 / T1547 & T1027 – Obfuscated/Hidden Files | <Placeholder> |
 | 43 | MITRE ATT&CK: T1070.001 – Indicator Removal on Host: Clear Windows Event Logs | T1070 – Indicator Removal on Host & T1562.001 – Impair Defenses | <Placeholder> |
-| 44 | <Placeholder> | <Placeholder> | <Placeholder> |
+| 44 | MITRE ATT&CK: T1070.001 – Indicator Removal on Host: Clear Windows Event Logs | <Placeholder> | <Placeholder> |
 
 ---
 
@@ -2371,34 +2371,56 @@ EventCode=1 AND Image endswith "wevtutil.exe" AND CommandLine contains "cl"
 <summary id="-flag-44">🚩 <strong>Flag 44: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+Erase forensic evidence across multiple log sources to hinder detection, investigation, and incident response.
 
 ### 📌 Finding
-<High-level description of the activity>
+Erase forensic evidence across multiple log sources to hinder detection, investigation, and incident response.
 
 ### 🔍 Evidence
 
 | Field | Value |
 |------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Host | EC2AMAZ-EEU3IA2.emberforge.local |
+| Timestamp | 2026-01-30 23:50:50.010 |
+| Process | C:\Windows\System32\wevtutil.exe |
+| Parent Process | C:\Windows\System32\cmd.exe |
+| Command Line | wevtutil cl Security / wevtutil cl System |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+- Clearing **Security logs** removes evidence of:
+  - Logins (success/failure)
+  - Privilege escalation
+  - Account creation/modification  
+- Clearing **System logs** removes:
+  - Service creation (persistence, lateral movement)
+  - System-level activity indicators  
+- This is a **high-confidence indicator of compromise** and typically occurs in **final attack stages**.
+- Severely disrupts **forensic timelines**, making root cause analysis difficult.
+- Indicates attacker awareness of detection mechanisms → **mature adversary behavior**.
 
 ### 🔧 KQL Query Used
-<Add KQL here>
+EmberForgeX_CL
+| where EventCode_s == "1"
+| where Computer contains "EC2AMAZ-EEU3IA2"
+| where Image_s contains "wevtutil"
+| project UtcTime_s, Computer, User_s, Image_s, CommandLine_s
+| sort by UtcTime_s asc
 
 ### 🖼️ Screenshot
-<Insert screenshot>
+<img width="1966" height="826" alt="image" src="https://github.com/user-attachments/assets/8fdfb838-4a3c-4664-b4e0-d58d8b89ccb0" />
 
 ### 🛠️ Detection Recommendation
+- Alert on execution of `wevtutil.exe` with `cl` (clear log) arguments.
+- Specifically monitor clearing of:
+  - Security logs
+  - System logs
+- Forward logs to a centralized SIEM to preserve data even if local logs are wiped.
+- Restrict permissions required to clear logs to only essential administrators.
+- Use EDR to detect suspicious log-clearing behavior.
 
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+`kql
+EventCode=1 AND Image endswith "wevtutil.exe" AND CommandLine contains "cl"
 
 </details>
 
