@@ -154,7 +154,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | 33 | MITRE ATT&CK: T1033 – System Owner/User Discovery | T1033 – System Owner/User Discovery | <Placeholder> |
 | 34 | MITRE ATT&CK: T1110 – Brute Force | T1550.002 – Use of NTLM (Pass-the-Hash)& TA0008 – Lateral Movement | <Placeholder> |
 | 35 | MITRE ATT&CK: T1033 – System Owner/User Discovery (whoami) | T1003.003 – OS Credential Dumping: NTDS & T1490 – Inhibit System Recovery (Shadow Copy abuse) & TA0006 – Credential Access  | <Placeholder> |
-| 36 | <Placeholder> | <Placeholder> | <Placeholder> |
+| 36 | MITRE ATT&CK: T1136.002 – Create Account: Domain Account |  TA0003 – Persistence & TA0004 – Privilege Escalation  | <Placeholder> |
 | 37 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 38 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 39 | <Placeholder> | <Placeholder> | <Placeholder> |
@@ -1877,23 +1877,29 @@ EmberForgeX_CL
 <summary id="-flag-36">🚩 <strong>Flag 36: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+The attacker was attempting to **establish persistent access within the domain** by creating a stealthy service-like account that blends in with legitimate system/service accounts.
 
 ### 📌 Finding
-<High-level description of the activity>
+<A new domain user account (`svc_backup`) was created using the `net user` command, indicating **persistence via account creation** after successful Domain Controller compromise.
 
 ### 🔍 Evidence
 
 | Field | Value |
 |------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Host | EC2AMAZ-EEU3IA2.emberforge.local |
+| Timestamp | 2026-01-30 23:38:11.786 |
+| Process | C:\Windows\System32\cmd.exe |
+| Parent Process | Likely services.exe (remote execution context) |
+| Command Line | "C:\Windows\system32\cmd.EXE" /C net user svc_backup P@ssw0rd123! /add /domain |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+- Creating a domain account provides **long-term persistence**, even if initial access is lost  
+- The naming convention (`svc_backup`) is designed to **blend in with legitimate service accounts**, reducing detection  
+- This account can later be:
+  - Added to privileged groups (e.g., Domain Admins)  
+  - Used for lateral movement or remote access  
+- Indicates the attacker has **high privileges (likely Domain Admin level)**  
+- This is a strong signal of **full domain compromise**
 
 ### 🔧 KQL Query Used
 EmberForgeX_CL
@@ -1916,7 +1922,21 @@ EmberForgeX_CL
 ### 🛠️ Detection Recommendation
 
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+- Monitor for **Event ID 4720 (user account creation)** in Windows Security logs  
+- Alert on:
+  - Accounts with **service-like naming patterns** (e.g., `svc_*`, `backup_*`, `admin_*`)  
+  - Account creation originating from:
+    - Non-admin workstations  
+    - SYSTEM context processes (cmd.exe, powershell.exe)  
+- Correlate with:
+  - Prior suspicious activity (credential dumping, lateral movement)  
+  - Group membership changes (Event ID 4728, 4732)  
+- Flag:
+  - Accounts created outside normal provisioning workflows  
+  - Accounts created during **off-hours or incident windows**  
+- Enrich detection with:
+  - User baseline behavior  
+  - Privilege escalation events following account creation  
 
 </details>
 
