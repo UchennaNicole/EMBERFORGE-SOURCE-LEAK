@@ -118,50 +118,50 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | Flag | Technique Category | MITRE ID | Priority |
 |-----:|-------------------|----------|----------|
 | 0 | MITRE ATT&CK: N/A (Analyst validation step – not adversary activity)| TA0007 – Discovery | Data/Environment Discovery” (analyst-side equivalent, not attacker action) |
-| 1 | MITRE ATT&CK: T1560 – Archive Collected Data | T1560 Archive Collected Data. | <Placeholder> |
-| 2 | MITRE ATT&CK: T1567.002 – Exfiltration to Cloud Storage | T1567 – Exfiltration Over Web Service. | <Placeholder> |
-| 3 | MITRE ATT&CK: T1552.001 – Credentials in Files| T1552 – Unsecured Credentials. | <Placeholder> |
-| 4 | MITRE ATT&CK: T1003.003 – OS Credential Dumping (NTDS) | <T1003 – OS Credential Dumping. | <Placeholder> |
-| 5 | MITRE ATT&CK: T1567.002 – Exfiltration to Cloud Storage| T1567 – Exfiltration Over Web Service.| <Placeholder> |
-| 6 | MITRE ATT&CK: T1041 – Exfiltration Over C2 Channel | T1041 – Exfiltration Over C2 Channel | <Placeholder> |
-| 7 | MITRE ATT&CK: T1552.003 – Credentials in Command Line | T1552 – Unsecured Credentials. | <Placeholder> |
-| 8 | MITRE ATT&CK: T1560.001 – Archive via Utility | T1560 – Archive Collected Data. | <Placeholder> |
-| 9 | MITRE ATT&CK: T1105 – Ingress Tool Transfer | T1105 – Ingress Tool Transfer. | <Placeholder> |
-| 10 | MITRE ATT&CK: T1218.011 – Rundll32 | T1218 – System Binary Proxy Execution. | <Placeholder> |
-| 11 | MITRE ATT&CK: T1553.005 – Mark-of-the-Web Bypass | T1553 – Subvert Trust Controls. | <Placeholder> |
-| 12 | MITRE ATT&CK: T1204.002 – User Execution (Malicious File) | T1204 – User Execution. | <Placeholder> |
-| 13 | T1218.011 – Rundll32 – Signed Binary Proxy Execution: Rundll32| <Placeholder> | <Placeholder> |
-| 14 | MITRE ATT&CK: T1204.002 – User Execution (Malicious File) | T1204 – User Execution.| <Placeholder> |
-| 15 | MITRE ATT&CK: T1053.005 – Scheduled Task | T1053.005 – Scheduled Task| <Placeholder> |
-| 16 | MITRE ATT&CK: T1071.004 – Application Layer Protocol: DNS | T1071 – Application Layer Protocol. | <Placeholder> |
-| 17 | MITRE ATT&CK: T1071.004 – Application Layer Protocol: DNS | T1071 – Application Layer Protocol. | <Placeholder> |
-| 18 | MITRE ATT&CK: T1055 – Process Injection | T1055 – Process Injection. | <Placeholder> |
-| 19 | MITRE ATT&CK: T1548.002 – Abuse Elevation Control Mechanism (UAC Bypass) | T1548 – Abuse Elevation Control Mechanism. | <Placeholder> |
-| 20 | MITRE ATT&CK: T1548.002 – Abuse Elevation Control Mechanism (UAC Bypass)| MITRE ATT&CK T1548 – Abuse Elevation Control Mechanism. | <Placeholder> |
-| 21 | MITRE ATT&CK: T1055 – Process Injection| <T1055 – Process Injection. | <Placeholder> |
-| 22 | MITRE ATT&CK: T1003.001 – OS Credential Dumping (LSASS Memory)| T1003.001 – LSASS Memory | <Placeholder> |
-| 23 | MITRE ATT&CK: T1003.001 – OS Credential Dumping (LSASS Memory)| T1003 – OS Credential Dumping. | <Placeholder> |
-| 24 | MITRE ATT&CK: T1087.002 – Account Discovery (Domain Account)| T1087 – Account Discovery | <Placeholder> |
-| 25 | MITRE ATT&CK: T1069.002 – Permission Groups Discovery (Domain Groups) | T1069 – Permission Groups Discovery. | <Placeholder> |
-| 26 | MITRE ATT&CK: T1018 – Remote System Discovery | T1018 – Remote System Discovery | <Placeholder> |
-| 27 | MITRE ATT&CK: T1021.002 – Remote Services: SMB/Windows Admin Shares | T1021 – Remote Services| <Placeholder> |
-| 28 | MITRE ATT&CK: T1562.004 – Impair Defenses: Modify System Firewall | T1562 – Impair Defenses.| <Placeholder> |
-| 29 | MITRE ATT&CK: T1055 – Process Injection | T1055 – Process Injection | <Placeholder> |
-| 30 | MITRE ATT&CK: T1021.002 – SMB/Windows Admin Shares | T1021 – Remote Services | <Placeholder> |
-| 31 | MITRE ATT&CK: T1105 – Ingress Tool Transfer | T1105 – Ingress Tool Transfer | <Placeholder> |
-| 32 | MITRE ATT&CK: T1569.002 – Service Execution | T1569 – System Services | <Placeholder> |
-| 33 | MITRE ATT&CK: T1033 – System Owner/User Discovery | T1033 – System Owner/User Discovery | <Placeholder> |
-| 34 | MITRE ATT&CK: T1110 – Brute Force | T1550.002 – Use of NTLM (Pass-the-Hash)& TA0008 – Lateral Movement | <Placeholder> |
-| 35 | MITRE ATT&CK: T1033 – System Owner/User Discovery (whoami) | T1003.003 – OS Credential Dumping: NTDS & T1490 – Inhibit System Recovery (Shadow Copy abuse) & TA0006 – Credential Access  | <Placeholder> |
-| 36 | MITRE ATT&CK: T1136.002 – Create Account: Domain Account |  TA0003 – Persistence & TA0004 – Privilege Escalation  | <Placeholder> |
-| 37 | MITRE ATT&CK: T1136.002 – Create Account: Domain Account | T1552.001 – Unsecured Credentials: Credentials in Command Line & TA0003 – Persistence & TA0006 – Credential Access | <Placeholder> |
-| 38 | MITRE ATT&CK: T1098 – Account Manipulation | T1078 – Valid Accounts & TA0004 – Privilege Escalation & TA0003 – Persistence | <Placeholder> |
-| 39 | MITRE ATT&CK: T1021.002 – Remote Services: SMB/Windows Admin Shares | T1078 – Valid Accounts & T1552.001 – Unsecured Credentials: | <Placeholder> |
-| 40 | MITRE ATT&CK: T1053.005 – Scheduled Task/Job: Scheduled Task | T1036 – Masquerading & T1547 – Boot or Logon Autostart Execution | <Placeholder> |
-| 41 | MITRE ATT&CK: T1219 – Remote Access Software | T1105 – Ingress Tool Transfer & T1036 – Masquerading & T1547 – Boot or Logon Autostart Execution  | <Placeholder> |
-| 42 | MITRE ATT&CK: T1562.001 – Impair Defenses: Disable or Modify Tools | T1219 – Remote Access Software & T1543 / T1547 & T1027 – Obfuscated/Hidden Files | <Placeholder> |
-| 43 | MITRE ATT&CK: T1070.001 – Indicator Removal on Host: Clear Windows Event Logs | T1070 – Indicator Removal on Host & T1562.001 – Impair Defenses | <Placeholder> |
-| 44 | MITRE ATT&CK: T1070.001 – Indicator Removal on Host: Clear Windows Event Logs | <Placeholder> | <Placeholder> |
+| 1 | MITRE ATT&CK: T1560 – Archive Collected Data | T1560 Archive Collected Data. | 🟡 3 – Medium  |
+| 2 | MITRE ATT&CK: T1567.002 – Exfiltration to Cloud Storage | T1567 – Exfiltration Over Web Service. | 🟠 2 – High  |
+| 3 | MITRE ATT&CK: T1552.001 – Credentials in Files| T1552 – Unsecured Credentials. | 🟠 2 – High  |
+| 4 | MITRE ATT&CK: T1003.003 – OS Credential Dumping (NTDS) | <T1003 – OS Credential Dumping. | 🔴 1 – Critical |
+| 5 | MITRE ATT&CK: T1567.002 – Exfiltration to Cloud Storage| T1567 – Exfiltration Over Web Service.| 🟠 2 – High  |
+| 6 | MITRE ATT&CK: T1041 – Exfiltration Over C2 Channel | T1041 – Exfiltration Over C2 Channel | 🟠 2 – High  |
+| 7 | MITRE ATT&CK: T1552.003 – Credentials in Command Line | T1552 – Unsecured Credentials. | 🟠 2 – High  |
+| 8 | MITRE ATT&CK: T1560.001 – Archive via Utility | T1560 – Archive Collected Data. | 🟡 3 – Medium  |
+| 9 | MITRE ATT&CK: T1105 – Ingress Tool Transfer | T1105 – Ingress Tool Transfer. | 🟡 3 – Medium |
+| 10 | MITRE ATT&CK: T1218.011 – Rundll32 | T1218 – System Binary Proxy Execution. | 🟡 3 – Medium  |
+| 11 | MITRE ATT&CK: T1553.005 – Mark-of-the-Web Bypass | T1553 – Subvert Trust Controls. | 🟢 4 – Low |
+| 12 | MITRE ATT&CK: T1204.002 – User Execution (Malicious File) | T1204 – User Execution. | 🟡 3 – Medium  |
+| 13 | T1218.011 – Rundll32 – Signed Binary Proxy Execution: Rundll32| <Placeholder> | 🟡 3 – Medium  |
+| 14 | MITRE ATT&CK: T1204.002 – User Execution (Malicious File) | T1204 – User Execution.| 🟡 3 – Medium |
+| 15 | MITRE ATT&CK: T1053.005 – Scheduled Task | T1053.005 – Scheduled Task| 🟡 3 – Medium  |
+| 16 | MITRE ATT&CK: T1071.004 – Application Layer Protocol: DNS | T1071 – Application Layer Protocol. | 🟢 4 – Low |
+| 17 | MITRE ATT&CK: T1071.004 – Application Layer Protocol: DNS | T1071 – Application Layer Protocol. | 🟢 4 – Low|
+| 18 | MITRE ATT&CK: T1055 – Process Injection | T1055 – Process Injection. | 🟠 2 – High  |
+| 19 | MITRE ATT&CK: T1548.002 – Abuse Elevation Control Mechanism (UAC Bypass) | T1548 – Abuse Elevation Control Mechanism. | 🔴 1 – Critical |
+| 20 | MITRE ATT&CK: T1548.002 – Abuse Elevation Control Mechanism (UAC Bypass)| MITRE ATT&CK T1548 – Abuse Elevation Control Mechanism. | 🔴 1 – Critical |
+| 21 | MITRE ATT&CK: T1055 – Process Injection| <T1055 – Process Injection. | 🟠 2 – High  |
+| 22 | MITRE ATT&CK: T1003.001 – OS Credential Dumping (LSASS Memory)| T1003.001 – LSASS Memory | 🔴 1 – Critical |
+| 23 | MITRE ATT&CK: T1003.001 – OS Credential Dumping (LSASS Memory)| T1003 – OS Credential Dumping. | 🔴 1 – Critical |
+| 24 | MITRE ATT&CK: T1087.002 – Account Discovery (Domain Account)| T1087 – Account Discovery | 🟡 3 – Medium |
+| 25 | MITRE ATT&CK: T1069.002 – Permission Groups Discovery (Domain Groups) | T1069 – Permission Groups Discovery. | 🟡 3 – Medium  |
+| 26 | MITRE ATT&CK: T1018 – Remote System Discovery | T1018 – Remote System Discovery | 🟡 3 – Medium  |
+| 27 | MITRE ATT&CK: T1021.002 – Remote Services: SMB/Windows Admin Shares | T1021 – Remote Services| 🟠 2 – High  |
+| 28 | MITRE ATT&CK: T1562.004 – Impair Defenses: Modify System Firewall | T1562 – Impair Defenses.| 🟡 3 – Medium  |
+| 29 | MITRE ATT&CK: T1055 – Process Injection | T1055 – Process Injection | 🟠 2 – High  |
+| 30 | MITRE ATT&CK: T1021.002 – SMB/Windows Admin Shares | T1021 – Remote Services | 🟠 2 – High  |
+| 31 | MITRE ATT&CK: T1105 – Ingress Tool Transfer | T1105 – Ingress Tool Transfer | 🟡 3 – Medium  |
+| 32 | MITRE ATT&CK: T1569.002 – Service Execution | T1569 – System Services | 🟠 2 – High |
+| 33 | MITRE ATT&CK: T1033 – System Owner/User Discovery | T1033 – System Owner/User Discovery | 🟡 3 – Medium  |
+| 34 | MITRE ATT&CK: T1110 – Brute Force | T1550.002 – Use of NTLM (Pass-the-Hash)& TA0008 – Lateral Movement | 🔴 1 – Critical |
+| 35 | MITRE ATT&CK: T1033 – System Owner/User Discovery (whoami) | T1003.003 – OS Credential Dumping: NTDS & T1490 – Inhibit System Recovery (Shadow Copy abuse) & TA0006 – Credential Access  | 🔴 1 – Critical |
+| 36 | MITRE ATT&CK: T1136.002 – Create Account: Domain Account |  TA0003 – Persistence & TA0004 – Privilege Escalation  | 🔴 1 – Critical |
+| 37 | MITRE ATT&CK: T1136.002 – Create Account: Domain Account | T1552.001 – Unsecured Credentials: Credentials in Command Line & TA0003 – Persistence & TA0006 – Credential Access | 🟠 2 – High |
+| 38 | MITRE ATT&CK: T1098 – Account Manipulation | T1078 – Valid Accounts & TA0004 – Privilege Escalation & TA0003 – Persistence | 🔴 1 – Critical|
+| 39 | MITRE ATT&CK: T1021.002 – Remote Services: SMB/Windows Admin Shares | T1078 – Valid Accounts & T1552.001 – Unsecured Credentials: | 🟠 2 – High  |
+| 40 | MITRE ATT&CK: T1053.005 – Scheduled Task/Job: Scheduled Task | T1036 – Masquerading & T1547 – Boot or Logon Autostart Execution | 🟡 3 – Medium  |
+| 41 | MITRE ATT&CK: T1219 – Remote Access Software | T1105 – Ingress Tool Transfer & T1036 – Masquerading & T1547 – Boot or Logon Autostart Execution  | 🟡 3 – Medium |
+| 42 | MITRE ATT&CK: T1562.001 – Impair Defenses: Disable or Modify Tools | T1219 – Remote Access Software & T1543 / T1547 & T1027 – Obfuscated/Hidden Files | 🟡 3 – Medium  |
+| 43 | MITRE ATT&CK: T1070.001 – Indicator Removal on Host: Clear Windows Event Logs | T1070 – Indicator Removal on Host & T1562.001 – Impair Defenses | 🟠 2 – High  |
+| 44 | MITRE ATT&CK: T1070.001 – Indicator Removal on Host: Clear Windows Event Logs | <Placeholder> | 🟠 2 – High  |
 
 ---
 
