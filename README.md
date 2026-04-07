@@ -139,7 +139,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | 18 | MITRE ATT&CK: T1055 – Process Injection | T1055 – Process Injection. | <Placeholder> |
 | 19 | MITRE ATT&CK: T1548.002 – Abuse Elevation Control Mechanism (UAC Bypass) | T1548 – Abuse Elevation Control Mechanism. | <Placeholder> |
 | 20 | MITRE ATT&CK: T1548.002 – Abuse Elevation Control Mechanism (UAC Bypass)| MITRE ATT&CK T1548 – Abuse Elevation Control Mechanism. | <Placeholder> |
-| 21 | <Placeholder> | <Placeholder> | <Placeholder> |
+| 21 | MITRE ATT&CK: T1055 – Process Injection| <T1055 – Process Injection. | <Placeholder> |
 | 22 | MITRE ATT&CK: T1003.001 – OS Credential Dumping (LSASS Memory)| T1003.001 – LSASS Memory | <Placeholder> |
 | 23 | MITRE ATT&CK: T1003.001 – OS Credential Dumping (LSASS Memory)| T1003 – OS Credential Dumping. | <Placeholder> |
 | 24 | <Placeholder> | <Placeholder> | <Placeholder> |
@@ -1109,34 +1109,43 @@ Hunt for registry writes to `ms-settings` keys, especially `DelegateExecute`, an
 <summary id="-flag-21">🚩 <strong>Flag 21: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+Achieve stable, privileged persistence by injecting malicious code into a SYSTEM-level process for long-term execution and stealth.
 
 ### 📌 Finding
-<High-level description of the activity>
+The attacker used `update.exe` to inject code into `spoolsv.exe`, a SYSTEM-level process, allowing execution under the `NT AUTHORITY\SYSTEM` context.
 
 ### 🔍 Evidence
 
 | Field | Value |
 |------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Host | EC2AMAZ-B9GHHO6.emberforge.local |
+| Timestamp | 2026-01-30 21:56:44.706 UTC |
+| Process | update.exe |
+| Parent Process | fodhelper.exe / elevated context |
+| Command Line | N/A (injection observed via Sysmon EventCode 8) |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+Injecting into `spoolsv.exe` provides the attacker with execution inside a trusted Windows service running as SYSTEM, the highest privilege level on the host. This ensures persistence, evasion, and resilience—even if the original malicious process is terminated. It also allows the attacker to perform sensitive operations such as credential access, lateral movement, and system manipulation without raising immediate suspicion.
 
 ### 🔧 KQL Query Used
-<Add KQL here>
+EmberForgeX_CL
+| where EventCode_s == "8"
+| where Computer contains "EC2AMAZ-B9GHHO6"
+| where Raw_s contains "update.exe" or Raw_s contains "spoolsv"
+| parse Raw_s with * "SourceImage'>" SourceImage "<" *
+| parse Raw_s with * "TargetImage'>" TargetImage "<" *
+| parse Raw_s with * "TargetUser'>" TargetUser "<" *
+| project UtcTime_s, Computer, SourceImage, TargetImage, TargetUser
+| sort by UtcTime_s asc
 
 ### 🖼️ Screenshot
-<Insert screenshot>
+<img width="2158" height="858" alt="image" src="https://github.com/user-attachments/assets/2733616f-1175-4b00-b481-90d031433b00" />
 
 ### 🛠️ Detection Recommendation
+Monitor Sysmon Event ID 8 (CreateRemoteThread) for injections into SYSTEM-level processes like `spoolsv.exe`, `lsass.exe`, or `svchost.exe`. Alert on unusual source processes (e.g., user-space executables like `update.exe`) injecting into privileged services. Correlate with prior privilege escalation activity.
 
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+Focus on cross-context injections—where a user-level process injects into a SYSTEM-level process. This jump in privilege context is a strong indicator of post-exploitation activity and often signals transition to persistence or full system control.
 
 </details>
 
