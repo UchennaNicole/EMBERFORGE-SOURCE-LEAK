@@ -1659,10 +1659,22 @@ EmberForgeX_CL
 <Explain impact, risk, and relevance>
 
 ### 🔧 KQL Query Used
-<Add KQL here>
+EmberForgeX_CL
+| where EventCode_s == "1"
+| where Computer contains "EC2AMAZ-EEU3IA2"
+| where todatetime(UtcTime_s) between (datetime(2026-01-30 21:00) .. datetime(2026-01-31 00:00))
+| where Image_s !contains "splunk"
+    and Image_s !contains "msedge"
+    and Image_s !contains "EdgeUpdate"
+    and Image_s !contains "identity_helper"
+    and Image_s !contains "elevation_service"
+    and Image_s !contains "MoUsoCoreWorker"
+    and Image_s !contains "smartscreen"
+| project UtcTime_s, User_s, Image_s, CommandLine_s
+| sort by UtcTime_s asc
 
 ### 🖼️ Screenshot
-<Insert screenshot>
+<img width="2262" height="1068" alt="image" src="https://github.com/user-attachments/assets/7814b571-ef72-42d2-a0f2-ef5204ed45fb" />
 
 ### 🛠️ Detection Recommendation
 
