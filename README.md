@@ -137,7 +137,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | 16 | MITRE ATT&CK: T1071.004 – Application Layer Protocol: DNS | T1071 – Application Layer Protocol. | <Placeholder> |
 | 17 | MITRE ATT&CK: T1071.004 – Application Layer Protocol: DNS | T1071 – Application Layer Protocol. | <Placeholder> |
 | 18 | MITRE ATT&CK: T1055 – Process Injection | T1055 – Process Injection. | <Placeholder> |
-| 19 | <Placeholder> | <Placeholder> | <Placeholder> |
+| 19 | MITRE ATT&CK: T1548.002 – Abuse Elevation Control Mechanism (UAC Bypass) | T1548 – Abuse Elevation Control Mechanism. | <Placeholder> |
 | 20 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 21 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 22 | MITRE ATT&CK: T1003.001 – OS Credential Dumping (LSASS Memory)| T1003.001 – LSASS Memory | <Placeholder> |
@@ -1016,34 +1016,48 @@ Look for uncommon parent-child or injection relationships (e.g., `rundll32.exe` 
 <summary id="-flag-19">🚩 <strong>Flag 19: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+Bypass User Account Control (UAC) to execute malicious code with elevated privileges without triggering a prompt.
 
 ### 📌 Finding
-<High-level description of the activity>
+The attacker modified the `ms-settings` registry key and then executed `fodhelper.exe`, a trusted auto-elevating binary, to achieve privilege escalation.
 
 ### 🔍 Evidence
 
 | Field | Value |
 |------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Host | EC2AMAZ-B9GHHO6.emberforge.local |
+| Timestamp | 2026-01-30 21:38:33.745 UTC (registry) / 2026-01-30 21:39:02.511 UTC (execution) |
+| Process | fodhelper.exe |
+| Parent Process | rundll32.exe |
+| Command Line | fodhelper.exe |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+This is a well-known UAC bypass technique that abuses trusted Windows binaries to execute attacker-controlled code with elevated privileges. By modifying the `ms-settings` registry path, the attacker redirects execution flow, allowing privilege escalation without user interaction. This enables further actions such as credential dumping, persistence, and lateral movement.
 
 ### 🔧 KQL Query Used
-<Add KQL here>
+EmberForgeX_CL
+| where EventCode_s == "13"
+| where TargetObject_s contains "ms-settings"
+| project UtcTime_s, Computer, User_s, Image_s, TargetObject_s
+| sort by UtcTime_s asc
+
+EmberForgeX_CL
+| where EventCode_s == "1"
+| where Image_s contains "fodhelper" or ParentImage_s contains "fodhelper"
+| project UtcTime_s, Computer, User_s, Image_s, CommandLine_s, ParentImage_s
+| sort by UtcTime_s asc
 
 ### 🖼️ Screenshot
-<Insert screenshot>
+
+<img width="2298" height="714" alt="image" src="https://github.com/user-attachments/assets/7315fb8e-1959-43e2-bac2-3e194b0ecd32" />
+
+<img width="2214" height="758" alt="image" src="https://github.com/user-attachments/assets/f036d824-e926-4736-ba55-7b5d2ac12a14" />
 
 ### 🛠️ Detection Recommendation
+Monitor for registry modifications to `HKCU\Software\Classes\ms-settings\shell\open\command` followed by execution of `fodhelper.exe`. Alert on suspicious parent-child relationships involving auto-elevating binaries and correlate with recent registry changes.
 
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+Hunt for sequences: **Registry modification (Event ID 13)** → **Trusted binary execution (Event ID 1)** within a short timeframe. This chaining behavior is a strong indicator of UAC bypass activity.
 
 </details>
 
