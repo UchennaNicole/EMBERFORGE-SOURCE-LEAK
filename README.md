@@ -153,7 +153,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | 32 | MITRE ATT&CK: T1569.002 – Service Execution | T1569 – System Services | <Placeholder> |
 | 33 | MITRE ATT&CK: T1033 – System Owner/User Discovery | T1033 – System Owner/User Discovery | <Placeholder> |
 | 34 | MITRE ATT&CK: T1110 – Brute Force | T1550.002 – Use of NTLM (Pass-the-Hash)& TA0008 – Lateral Movement | <Placeholder> |
-| 35 | <Placeholder> | <Placeholder> | <Placeholder> |
+| 35 | MITRE ATT&CK: T1033 – System Owner/User Discovery (whoami) | T1003.003 – OS Credential Dumping: NTDS & T1490 – Inhibit System Recovery (Shadow Copy abuse) & TA0006 – Credential Access  | <Placeholder> |
 | 36 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 37 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 38 | <Placeholder> | <Placeholder> | <Placeholder> |
@@ -1808,23 +1808,30 @@ Detect repeated failed NTLM network logons (Event ID 4625, LogonType 3) from a s
 <summary id="-flag-35">🚩 <strong>Flag 35: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+The attacker was attempting to **verify execution context on the Domain Controller and prepare for Active Directory database extraction** using Volume Shadow Copy techniques.
 
 ### 📌 Finding
-<High-level description of the activity>
+The attacker first executed `whoami` to confirm privileges (likely SYSTEM), then leveraged **vssadmin.exe** to enumerate shadow copies as a precursor to extracting the NTDS.dit database.
 
 ### 🔍 Evidence
 
 | Field | Value |
 |------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Host | EC2AMAZ-EEU3IA2.emberforge.local |
+| Timestamp | 2026-01-30 23:19:21 – 23:34:56 |
+| Process | C:\Windows\System32\cmd.exe |
+| Parent Process | Likely services.exe (via remote execution) |
+| Command Line | whoami → vssadmin list shadows /for=C: |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+- `whoami` confirms **privilege level (SYSTEM)** — critical before high-impact actions  
+- `vssadmin.exe` is used to:
+  - Access locked files like **NTDS.dit**
+  - Bypass file locks using shadow copies  
+- This sequence is a **strong indicator of Domain Controller compromise** and imminent credential dumping  
+- Successful execution leads to:
+  - Full domain credential exposure  
+  - Golden Ticket / full domain takeover potential  
 
 ### 🔧 KQL Query Used
 EmberForgeX_CL
@@ -1847,7 +1854,20 @@ EmberForgeX_CL
 ### 🛠️ Detection Recommendation
 
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+- Alert on:
+  - `whoami` executed on Domain Controllers, especially via `cmd.exe /c`
+  - `vssadmin list shadows` or `vssadmin create shadow`
+- Correlate:
+  - Execution under **NT AUTHORITY\SYSTEM**
+  - Follow-on access to:
+    - `C:\Windows\NTDS\ntds.dit`
+    - SYSTEM hive files
+- Flag:
+  - Command chaining (`cmd.exe /c echo ...`)
+  - Output redirection to temp files (`C:\Windows\Temp\_output`)
+- Combine with:
+  - Service creation (Event ID 7045)
+  - Remote execution patterns (PsExec-like behavior)
 
 </details>
 
