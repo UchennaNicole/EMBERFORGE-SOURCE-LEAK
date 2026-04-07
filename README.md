@@ -142,7 +142,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | 21 | MITRE ATT&CK: T1055 – Process Injection| <T1055 – Process Injection. | <Placeholder> |
 | 22 | MITRE ATT&CK: T1003.001 – OS Credential Dumping (LSASS Memory)| T1003.001 – LSASS Memory | <Placeholder> |
 | 23 | MITRE ATT&CK: T1003.001 – OS Credential Dumping (LSASS Memory)| T1003 – OS Credential Dumping. | <Placeholder> |
-| 24 | <Placeholder> | <Placeholder> | <Placeholder> |
+| 24 | MITRE ATT&CK: T1087.002 – Account Discovery (Domain Account)| T1087 – Account Discovery | <Placeholder> |
 | 25 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 26 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 27 | MITRE ATT&CK: T1021.002 – Remote Services: SMB/Windows Admin Shares | T1021 – Remote Services| <Placeholder> |
@@ -1238,34 +1238,40 @@ Hunt Sysmon Event ID 11 for `.dmp` files, then pivot to the creating process and
 <summary id="-flag-24">🚩 <strong>Flag 24: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+Enumerate domain user accounts to understand the environment and identify potential targets for lateral movement or privilege escalation.
 
 ### 📌 Finding
-<High-level description of the activity>
+The attacker executed `net user /domain` to query all user accounts in the domain, indicating active reconnaissance of Active Directory.
 
 ### 🔍 Evidence
 
 | Field | Value |
 |------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Host | EC2AMAZ-B9GHHO6.emberforge.local |
+| Timestamp | 2026-01-30 21:34:32.951 UTC |
+| Process | net.exe |
+| Parent Process | rundll32.exe |
+| Command Line | net user /domain |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+Enumerating domain users is a key discovery step that allows attackers to map the environment, identify privileged accounts, and plan further actions such as credential theft or lateral movement. This activity often precedes targeted attacks against high-value accounts like Domain Admins.
 
 ### 🔧 KQL Query Used
-<Add KQL here>
+EmberForgeX_CL
+| where EventCode_s == "1"
+| where Computer contains "EC2AMAZ-B9GHHO6"
+| where CommandLine_s has_any ("net user", "Get-ADUser", "dsquery user", "wmic useraccount")
+| project UtcTime_s, Computer, User_s, Image_s, CommandLine_s, ParentImage_s
+| sort by UtcTime_s asc
 
 ### 🖼️ Screenshot
-<Insert screenshot>
+<img width="2308" height="890" alt="image" src="https://github.com/user-attachments/assets/597abba0-fc1d-420c-87cb-54249fe3370c" />
 
 ### 🛠️ Detection Recommendation
+Monitor for execution of account enumeration commands such as `net user /domain`, `dsquery user`, and `Get-ADUser`, especially when executed from non-administrative workstations or unusual parent processes. Correlate with other discovery or post-exploitation activity.
 
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+Look for bursts of enumeration commands early in an attack chain. Pivot from these commands to identify what accounts were targeted next—this often reveals the attacker’s intent and next move.
 
 </details>
 
