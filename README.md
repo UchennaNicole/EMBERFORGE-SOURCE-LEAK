@@ -1492,10 +1492,16 @@ Search for command-line activity involving firewall modifications and pivot to n
 <Explain impact, risk, and relevance>
 
 ### 🔧 KQL Query Used
-<Add KQL here>
+EmberForgeX_CL
+| where todatetime(UtcTime_s) between (datetime(2026-01-30 21:00) .. datetime(2026-01-31 00:00))
+| where EventCode_s == "1"
+| where Computer contains "EC2AMAZ-16V3AU4"  
+| where CommandLine_s has_any ("http", "urlcache", "DownloadFile", "bitsadmin", "curl")
+| project UtcTime_s, Computer, User_s, Image_s, CommandLine_s
+| sort by UtcTime_s asc
 
 ### 🖼️ Screenshot
-<Insert screenshot>
+<img width="2248" height="1062" alt="image" src="https://github.com/user-attachments/assets/0d776d8d-d4ff-4145-bc51-82128e0653ad" />
 
 ### 🛠️ Detection Recommendation
 
