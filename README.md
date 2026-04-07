@@ -2430,27 +2430,143 @@ EventCode=1 AND Image endswith "wevtutil.exe" AND CommandLine contains "cl"
 ## 🚨 Detection Gaps & Recommendations
 
 ### Observed Gaps
-- <Placeholder>
-- <Placeholder>
-- <Placeholder>
+
+- **EventCode 7045 (Service Installation) not reliably ingested:** The Impacket smbexec technique 
+  creates random-named temporary services (e.g., `MzLblBFm`, `pGJLIKnC`) to execute commands 
+  remotely. While these were recoverable via `EventData_Xml_s`, the parsed `EventCode_s` field 
+  did not return results for 7045 in initial queries, indicating inconsistent log ingestion or 
+  parsing issues. This is a critical visibility gap as service-based lateral movement is a primary 
+  Impacket indicator.
+
+- **No endpoint detection on ntds.dit extraction via VSS:** The attacker used `vssadmin.exe` to 
+  create a shadow copy and copied `ntds.dit` directly via `cmd.exe`. No EDR alert, file access 
+  audit event (EventCode 4663), or Object Access audit log captured the actual file read of 
+  `ntds.dit`. This means the most damaging action of the entire intrusion — full AD database 
+  extraction — produced no dedicated alert and was only discoverable through process creation 
+  logs after careful manual analysis.
+
+- **Plaintext credentials in command line arguments not alerted on:** Three separate commands 
+  contained plaintext credentials directly in the `CommandLine_s` field: the `svc_backup` account 
+  creation (`P@ssw0rd123!`), the net use drive mapping (`EmberForge2024!`), and the AnyDesk 
+  unattended password hash. No SIEM rule or alert fired on any of these events despite the 
+  credentials being trivially detectable via keyword matching on command line fields.
+
+- **No alerting on AnyDesk silent installation and config modification:** AnyDesk was silently 
+  installed on both the workstation and the server using `--silent` flags, a known attacker 
+  technique. The subsequent modification of `system.conf` to enable unattended access and set a 
+  known-weak password hash (`5e884898` = `password`) generated no alert. Remote access software 
+  abuse (T1219) is a well-documented technique with available detection signatures.
+
+- **Log clearing via wevtutil not blocked or alerted in real time:** The attacker successfully 
+  cleared the Security and System event logs on the Domain Controller using `wevtutil cl`. While 
+  Sysmon captured the process execution, no real-time alert fired to notify the SOC that audit 
+  logs were being destroyed — a clear indicator of an attacker attempting to cover their tracks 
+  at the end of the intrusion.
+
+- **NTLM brute force / Pass-the-Hash attempts not blocked:** Repeated failed NTLM authentication 
+  attempts (EventCode 4625, status `0x80090308`) from `10.1.173.145` to the Domain Controller 
+  spanned over 90 minutes without triggering an account lockout, automated block, or SOC alert. 
+  This allowed the attacker to continue attempting lateral movement undetected until switching 
+  to smbexec.
+
+---
 
 ### Recommendations
-- <Placeholder>
-- <Placeholder>
-- <Placeholder>
+
+- **Implement real-time alerting on EventCode 7045 with random service name heuristics:** Create 
+  a SIEM rule that fires when a new service is installed with a name matching a short random 
+  alphanumeric pattern (e.g., regex `^[A-Za-z]{8}$`) and an ImagePath containing `%COMSPEC%` or 
+  `cmd.exe`. This directly detects Impacket smbexec activity and should be treated as a 
+  critical-priority alert requiring immediate investigation.
+
+- **Enable Object Access auditing for ntds.dit and VSS operations:** Configure Advanced Audit 
+  Policy to enable `Audit Object Access` on `%SystemRoot%\NTDS\ntds.dit` and monitor for 
+  EventCode 4663 (file read). Additionally, create SIEM detections for the combination of 
+  `vssadmin create shadow` followed by a file copy from `\\?\GLOBALROOT\Device\HarddiskVolumeShadow*\Windows\NTDS\`. 
+  This is the most critical gap given that NTDS extraction is the highest-impact action in the 
+  entire kill chain.
+
+- **Deploy SIEM rules for plaintext credentials in command line arguments:** Implement keyword 
+  detection on `CommandLine_s` for patterns such as `net user * /add`, `net use * /user:`, and 
+  any command containing common password patterns. Hash-based detection on known weak password 
+  hashes (e.g., `5e884898da28047` for `password`) in configuration files should also be 
+  implemented. These are trivial to detect and represent unacceptable OPSEC failures by the 
+  attacker that should have triggered immediate alerts.
+
+- **Block or alert on AnyDesk and other remote access tools via application whitelisting:** 
+  Deploy application control policies (e.g., AppLocker or Windows Defender Application Control) 
+  to block unauthorized remote access software. At minimum, create SIEM detections for 
+  `--silent` installation flags combined with known RMM tool names (AnyDesk, TeamViewer, 
+  ScreenConnect). Alert on modifications to `system.conf` or equivalent configuration files 
+  for known remote access tools.
+
+- **Implement real-time alerting on event log clearing:** Create a high-priority SIEM rule that 
+  fires immediately when `wevtutil cl` is executed targeting Security or System logs. This should 
+  trigger a P1 incident response, as log clearing at this stage indicates an attacker has 
+  completed their objectives and is attempting to destroy forensic evidence. Consider deploying 
+  a WORM-compliant log forwarding solution so that even if local logs are cleared, a remote copy 
+  is preserved.
+
+- **Enforce NTLM authentication controls and implement account lockout policies:** Configure 
+  Network Level Authentication (NLA) and consider restricting NTLM authentication to approved 
+  hosts via Group Policy (`Network Security: Restrict NTLM`). Implement account lockout after 
+  5 failed attempts with a 30-minute lockout duration. Deploy Microsoft Defender for Identity 
+  (MDI) or equivalent to detect Pass-the-Hash and lateral movement patterns in real time.
+
+- **Implement EDR with process injection detection:** The attacker performed at least two 
+  confirmed process injection events (CreateRemoteThread, EventCode 8) including injection into 
+  `spoolsv.exe` running as SYSTEM. A properly configured EDR solution with behavioral detection 
+  would flag this in real time. Ensure EDR coverage is consistent across all hosts including 
+  servers and Domain Controllers.
 
 ---
 
 ## 🧾 Final Assessment
 
-<Concise executive-style conclusion summarizing risk, attacker sophistication, and defensive posture.>
+The EmberForge intrusion represents a sophisticated, multi-stage attack executed by a threat 
+actor with strong operational familiarity with Active Directory environments and common 
+penetration testing frameworks. The attacker demonstrated a methodical kill chain: initial 
+access via a malicious DLL (`review.dll`) executed through `rundll32.exe`, followed by C2 
+establishment via a renamed beacon (`update.exe`), UAC bypass via the `fodhelper.exe` registry 
+hijack technique, process injection into `spoolsv.exe` for privilege escalation, lateral 
+movement to the server and Domain Controller via Impacket smbexec, full Active Directory 
+database extraction via VSS shadow copy abuse, domain persistence via a backdoor Domain Admin 
+account (`svc_backup`), and finally anti-forensic log clearing via `wevtutil`.
+
+The attacker achieved the highest possible level of access within the environment — Domain 
+Admin with a persistent backdoor account, a copy of the ntds.dit database containing all 
+domain credential hashes, and remote access via AnyDesk installed on both the workstation and 
+server. The full credential database exposure means every domain account — including privileged 
+service accounts and administrator accounts — must be treated as compromised and rotated 
+immediately.
+
+From a defensive posture perspective, the environment exhibited significant detection gaps 
+including absent real-time alerting on critical techniques, no blocking controls on lateral 
+movement tools, and incomplete log coverage for the most impactful events. The attacker 
+operated within the environment for an extended period without triggering any automated 
+response. Immediate priorities are credential rotation for all domain accounts, isolation of 
+affected hosts, and implementation of the detection recommendations above before reconnecting 
+systems to the network.
+
+The sophistication level of this intrusion — combined with the use of living-off-the-land 
+techniques, legitimate tooling abuse, and deliberate anti-forensic measures — is consistent 
+with a targeted threat actor rather than opportunistic malware. The organization should treat 
+this as a full domain compromise and conduct a thorough rebuild of the Active Directory 
+environment before resuming normal operations.
 
 ---
 
 ## 📎 Analyst Notes
 
-- Report structured for interview and portfolio review  
-- Evidence reproducible via advanced hunting  
-- Techniques mapped directly to MITRE ATT&CK  
-
+- Report structured for interview and portfolio review
+- Evidence reproducible via advanced hunting queries documented throughout investigation
+- Techniques mapped directly to MITRE ATT&CK framework across all 44 flagged events
+- Hunt conducted across three hosts: `EC2AMAZ-B9GHHO6` (workstation), `EC2AMAZ-16V3AU4` 
+  (server), and `EC2AMAZ-EEU3IA2` (Domain Controller)
+- Log source: Sysmon (Operational) + Windows Security events ingested into Azure Log Analytics 
+  workspace `law-cyber-range`, table `EmberForgeX_CL`
+- Time window investigated: 2026-01-30 21:00 – 2026-01-31 00:00 UTC
+- All queries reproducible in KQL; evidence CSVs exported at each investigation step
+- Key IOCs identified: C2 staging domain `sync.cloud-endpoint.net:8080`, backdoor account 
+  `svc_backup`, AnyDesk unattended password hash `5e884898da28047d91089d3f7c6e12d05d0fb9e2`
 ---
