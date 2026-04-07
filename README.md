@@ -152,7 +152,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | 31 | MITRE ATT&CK: T1105 – Ingress Tool Transfer | T1105 – Ingress Tool Transfer | <Placeholder> |
 | 32 | MITRE ATT&CK: T1569.002 – Service Execution | T1569 – System Services | <Placeholder> |
 | 33 | MITRE ATT&CK: T1033 – System Owner/User Discovery | T1033 – System Owner/User Discovery | <Placeholder> |
-| 34 | <Placeholder> | <Placeholder> | <Placeholder> |
+| 34 | MITRE ATT&CK: T1110 – Brute Force | T1550.002 – Use of NTLM (Pass-the-Hash)& TA0008 – Lateral Movement | <Placeholder> |
 | 35 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 36 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 37 | <Placeholder> | <Placeholder> | <Placeholder> |
@@ -1748,23 +1748,31 @@ This combination is a strong indicator of **remote command execution validation 
 <summary id="-flag-34">🚩 <strong>Flag 34: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+The attacker was attempting **lateral movement into a remote system using NTLM authentication**, likely to gain access to another host using stolen or guessed credentials.
 
 ### 📌 Finding
-<High-level description of the activity>
+Multiple **failed network logon attempts (Event ID 4625)** were observed originating from an internal host using the **NTLM authentication protocol**, indicating unsuccessful lateral movement attempts.
 
 ### 🔍 Evidence
 
 | Field | Value |
 |------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Host | EC2AMAZ-16V3AU4.emberforge.local |
+| Timestamp | 2026-01-30 |
+| Process | N/A (authentication event) |
+| Parent Process | N/A |
+| Command Line | N/A |
+| Source IP | 10.1.173.145 |
+| Logon Type | 3 (Network Logon) |
+| Authentication | NTLM |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+- **Repeated NTLM authentication failures** strongly indicate:
+  - Credential guessing or brute-force attempts  
+  - Pass-the-Hash activity using invalid or outdated hashes  
+- NTLM is less secure than Kerberos and commonly abused in lateral movement.  
+- These failed attempts often precede **successful compromise using alternate techniques** (e.g., SMB exec, service creation).  
+- This activity signals an **active attacker probing access paths inside the network**, which is a critical early warning before full domain compromise.
 
 ### 🔧 KQL Query Used
 EmberForgeX_CL
@@ -1777,9 +1785,20 @@ EmberForgeX_CL
 <img width="2262" height="1038" alt="image" src="https://github.com/user-attachments/assets/4eb5e7b8-a647-4c51-a41c-97166f8afaa9" />
 
 ### 🛠️ Detection Recommendation
+Detect repeated failed NTLM network logons (Event ID 4625, LogonType 3) from a single source host, especially when followed by a successful login—this may indicate brute force or pass-the-hash lateral movement.
 
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+- Monitor for **Event ID 4625 with LogonType = 3 and AuthenticationPackage = NTLM**  
+- Correlate:
+  - High volume of failures from a single source IP  
+  - Follow-on **Event ID 4624 (successful logon)** from same source  
+- Flag:
+  - NTLM usage in environments expected to use Kerberos  
+  - Repeated failures targeting multiple accounts or hosts  
+- Enrich detection with:
+  - SMB activity (Event ID 5140)  
+  - Service creation (Event ID 7045)  
+  - Remote execution patterns (PsExec/WMI)
 
 </details>
 
