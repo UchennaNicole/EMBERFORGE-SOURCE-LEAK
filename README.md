@@ -151,7 +151,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | 30 | MITRE ATT&CK: T1021.002 – SMB/Windows Admin Shares | T1021 – Remote Services | <Placeholder> |
 | 31 | MITRE ATT&CK: T1105 – Ingress Tool Transfer | T1105 – Ingress Tool Transfer | <Placeholder> |
 | 32 | MITRE ATT&CK: T1569.002 – Service Execution | T1569 – System Services | <Placeholder> |
-| 33 | <Placeholder> | <Placeholder> | <Placeholder> |
+| 33 | MITRE ATT&CK: T1033 – System Owner/User Discovery | T1033 – System Owner/User Discovery | <Placeholder> |
 | 34 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 35 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 36 | <Placeholder> | <Placeholder> | <Placeholder> |
@@ -1686,23 +1686,30 @@ Randomized service names + command execution = **high-confidence remote executio
 <summary id="-flag-33">🚩 <strong>Flag 33: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+Verify execution context and privileges on the newly compromised host to confirm successful lateral movement and SYSTEM-level access.
 
 ### 📌 Finding
-<High-level description of the activity>
+The attacker executed the `whoami` command via a remotely created service to determine the current user context, confirming they were running as `NT AUTHORITY\SYSTEM`.
 
 ### 🔍 Evidence
 
 | Field | Value |
 |------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Host | EC2AMAZ-16V3AU4.emberforge.local |
+| Timestamp | 2026-01-30 22:10:52 UTC (approx) |
+| Process | cmd.exe |
+| Parent Process | services.exe |
+| Command Line | %COMSPEC% /Q /c echo whoami ^> \\%COMPUTERNAME%\C$\__output_... |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+`whoami` is almost always the **first command executed after lateral movement**. It allows the attacker to:
+- Confirm privilege level (e.g., SYSTEM vs user)
+- Validate successful remote execution
+- Determine next steps (credential dumping, persistence, domain escalation)
+
+Seeing this command in conjunction with service creation strongly confirms:
+- **Successful compromise of a new host**
+- **Execution under elevated privileges**
 
 ### 🔧 KQL Query Used
 EmberForgeX_CL
@@ -1716,9 +1723,22 @@ EmberForgeX_CL
 
 
 ### 🛠️ Detection Recommendation
+Monitor for:
+- Execution of `whoami` on remote hosts, especially via:
+  - Service creation (Event ID 7045)
+  - SMB-based execution (PsExec-like behavior)
+- Output redirection to hidden or temp files (e.g., `\\ADMIN$`, `C$` shares)
+
+Correlate with:
+- Prior file transfers (e.g., `update.exe`)
+- Service-based execution
+- Admin share usage
 
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+Look for patterns like:
+- `whoami` + output redirection (`>`, `\\*\C$`)
+- Executed via `cmd.exe /c`  
+This combination is a strong indicator of **remote command execution validation by an attacker**.
 
 </details>
 
