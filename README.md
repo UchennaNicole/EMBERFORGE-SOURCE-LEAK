@@ -138,7 +138,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | 17 | MITRE ATT&CK: T1071.004 – Application Layer Protocol: DNS | T1071 – Application Layer Protocol. | <Placeholder> |
 | 18 | MITRE ATT&CK: T1055 – Process Injection | T1055 – Process Injection. | <Placeholder> |
 | 19 | MITRE ATT&CK: T1548.002 – Abuse Elevation Control Mechanism (UAC Bypass) | T1548 – Abuse Elevation Control Mechanism. | <Placeholder> |
-| 20 | <Placeholder> | <Placeholder> | <Placeholder> |
+| 20 | MITRE ATT&CK: T1548.002 – Abuse Elevation Control Mechanism (UAC Bypass)| MITRE ATT&CK T1548 – Abuse Elevation Control Mechanism. | <Placeholder> |
 | 21 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 22 | MITRE ATT&CK: T1003.001 – OS Credential Dumping (LSASS Memory)| T1003.001 – LSASS Memory | <Placeholder> |
 | 23 | MITRE ATT&CK: T1003.001 – OS Credential Dumping (LSASS Memory)| T1003 – OS Credential Dumping. | <Placeholder> |
@@ -1067,34 +1067,39 @@ Hunt for sequences: **Registry modification (Event ID 13)** → **Trusted binary
 <summary id="-flag-20">🚩 <strong>Flag 20: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+Enable a UAC bypass by configuring the registry to hijack a trusted auto-elevating binary’s execution flow.
 
 ### 📌 Finding
-<High-level description of the activity>
+The attacker created the `DelegateExecute` registry value under the `ms-settings` key, enabling the hijack used by `fodhelper.exe` to execute malicious code with elevated privileges.
 
 ### 🔍 Evidence
 
 | Field | Value |
 |------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Host | EC2AMAZ-B9GHHO6.emberforge.local |
+| Timestamp | 2026-01-30 21:38:50.904 UTC |
+| Process | reg.exe |
+| Parent Process | rundll32.exe |
+| Command Line | reg add HKCU\Software\Classes\ms-settings\shell\open\command /v DelegateExecute /t REG_SZ /d "" /f |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+The `DelegateExecute` value is the key component that enables this UAC bypass technique. When present, it causes `fodhelper.exe` to execute without prompting the user and follow the attacker-controlled registry path. This allows silent privilege escalation, giving the attacker elevated execution without user awareness.
 
 ### 🔧 KQL Query Used
-<Add KQL here>
+EmberForgeX_CL
+| where EventCode_s == "13"
+| where TargetObject_s contains "ms-settings"
+| project UtcTime_s, Computer, User_s, Image_s, TargetObject_s
+| sort by UtcTime_s asc
 
 ### 🖼️ Screenshot
-<Insert screenshot>
+<img width="2268" height="930" alt="image" src="https://github.com/user-attachments/assets/c70201d0-87ca-4c05-b15b-351ccbd681ae" />
 
 ### 🛠️ Detection Recommendation
+Monitor for creation or modification of the `DelegateExecute` value under `HKCU\Software\Classes\ms-settings\shell\open\command`. Alert when followed by execution of `fodhelper.exe` or other auto-elevating binaries. Correlate registry changes with process execution timing.
 
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+Hunt for registry writes to `ms-settings` keys, especially `DelegateExecute`, and immediately pivot to subsequent process execution events. This sequence is a strong indicator of UAC bypass activity.
 
 </details>
 
