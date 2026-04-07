@@ -1535,10 +1535,14 @@ EmberForgeX_CL
 <Explain impact, risk, and relevance>
 
 ### 🔧 KQL Query Used
-<Add KQL here>
+EmberForgeX_CL
+| where EventData_Xml_s contains "ServiceName"
+| where Computer contains "EC2AMAZ-16V3AU4"
+| project UtcTime_s, Computer, EventData_Xml_s
+| sort by UtcTime_s asc
 
 ### 🖼️ Screenshot
-<Insert screenshot>
+<img width="2270" height="844" alt="image" src="https://github.com/user-attachments/assets/a0d41c1f-1875-41c0-a065-f44074d31b82" />
 
 ### 🛠️ Detection Recommendation
 
