@@ -1618,10 +1618,14 @@ EmberForgeX_CL
 <Explain impact, risk, and relevance>
 
 ### 🔧 KQL Query Used
-<Add KQL here>
+EmberForgeX_CL
+| where EventCode_s == "4625"
+| where Computer contains "EC2AMAZ-16V3AU4"
+| project UtcTime_s, Computer, Caller_User_Name_s, src_ip_s, LogonType_s, Raw_s
+| sort by UtcTime_s asc
 
 ### 🖼️ Screenshot
-<Insert screenshot>
+<img width="2262" height="1038" alt="image" src="https://github.com/user-attachments/assets/4eb5e7b8-a647-4c51-a41c-97166f8afaa9" />
 
 ### 🛠️ Detection Recommendation
 
