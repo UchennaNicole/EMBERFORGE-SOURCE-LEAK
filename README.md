@@ -109,7 +109,71 @@ A security breach was identified within EmberForge Studios, prompting a focused 
 
 ## 🧠 Hunt Overview
 
-<High-level narrative describing the attack lifecycle, key behaviors observed, and why this hunt matters.>
+The EmberForge intrusion represents a full-lifecycle, hands-on-keyboard attack that progressed 
+from initial user compromise to complete Active Directory domain takeover within a single 
+three-hour window. The attack began when a domain user, `EMBERFORGE\lmartin`, executed a 
+malicious DLL (`review.dll`) delivered via a mounted disk image on the workstation 
+`EC2AMAZ-B9GHHO6`. The DLL was loaded through `rundll32.exe` — a trusted Windows binary — 
+allowing the attacker to establish an initial foothold while evading traditional security 
+controls through Living Off the Land (LOLBin) techniques.
+
+Once execution was achieved, the attacker deployed a C2 beacon (`update.exe`) staged in 
+`C:\Users\Public`, establishing persistent communication with attacker-controlled 
+infrastructure at `sync.cloud-endpoint.net` and `cdn.cloud-endpoint.net`. The beacon was 
+immediately configured for survival across reboots via scheduled tasks and registry run keys, 
+with the task name `WindowsUpdate` chosen deliberately to blend in with legitimate Windows 
+processes. LSASS memory was dumped to disk (`lsass.dmp`) using direct syscall techniques to 
+extract credential material without triggering API-based monitoring.
+
+With credentials in hand, the attacker escalated privileges on the workstation using a 
+well-documented UAC bypass technique — modifying the `HKCU\Software\Classes\ms-settings\shell\
+open\command` registry key with a `DelegateExecute` value to hijack `fodhelper.exe`, a trusted 
+auto-elevating Windows binary. This silently elevated execution without triggering a UAC 
+prompt. The elevated beacon then performed process injection into `spoolsv.exe` — a SYSTEM-level 
+Windows Print Spooler service — granting the attacker the highest privilege level on the host 
+and ensuring all subsequent operations executed within a trusted process context.
+
+Lateral movement proceeded in two phases. The first phase involved repeated failed NTLM 
+authentication attempts (Pass-the-Hash) from the workstation to the server `EC2AMAZ-16V3AU4` 
+over a 90-minute window — all undetected. When this approach proved unreliable, the attacker 
+pivoted to Impacket-style smbexec execution: creating randomly named temporary Windows services 
+(`MzLblBFm`, `pGJLIKnC`, `QjhJMWqS`) on the server to execute commands remotely as SYSTEM. 
+Using this technique, the attacker downloaded AnyDesk from the staging server via `certutil.exe` 
+and installed it silently, modifying `C:\ProgramData\AnyDesk\system.conf` to enable unattended 
+access with a known-weak password (`password`), providing a persistent remote access channel 
+independent of the C2 beacon.
+
+The attacker then pivoted to the Domain Controller `EC2AMAZ-EEU3IA2`, again using smbexec-based 
+remote execution. The first command executed was `whoami` — confirming SYSTEM-level access — 
+followed immediately by Active Directory database extraction via Volume Shadow Copy abuse. 
+`vssadmin.exe` was used to create a shadow copy of the C: drive, from which `ntds.dit` was 
+copied to `C:\Windows\Temp\nyMdRNSp.tmp` before the shadow copy was deleted to destroy 
+evidence. This gave the attacker offline access to every credential hash in the domain.
+
+To solidify persistence, a backdoor domain account (`svc_backup`) was created with the password 
+`P@ssw0rd123!` — exposed in plaintext in the command line — and immediately added to the Domain 
+Admins group, granting full administrative control over the entire Active Directory environment. 
+The attacker then mapped a network drive to the workstation's tools share using the domain 
+Administrator's plaintext credentials (`EmberForge2024!`), copied the beacon payload to the DC, 
+and created a `WindowsUpdate` scheduled task for persistence. A secondary data exfiltration 
+stream was also confirmed on the server, where `rclone.exe` was used to transfer compressed 
+archives of `C:\GameDev` source code to a MEGA cloud storage account, with attacker credentials 
+(`Summer2024!`) exposed in process command line logs.
+
+The intrusion concluded with deliberate anti-forensic activity: the Security and System event 
+logs on the Domain Controller were cleared twice using `wevtutil cl`, and `update.exe` was 
+timestomped to `01/15/2024` to obscure its true creation date. Despite these cleanup efforts, 
+Sysmon telemetry captured the complete attack chain across all three hosts.
+
+This hunt matters because it demonstrates how a sophisticated attacker can achieve full domain 
+compromise using almost exclusively built-in Windows tools and legitimate software — leaving 
+minimal malware artifacts while causing maximum damage. The entire kill chain — from initial 
+DLL execution to Domain Admin persistence and credential database extraction — was completed 
+in under three hours, with no automated alerts firing at any stage. The investigation 
+underscores the critical importance of behavioral detection over signature-based controls, 
+comprehensive command-line logging, and real-time alerting on high-impact techniques such as 
+NTDS extraction, UAC bypass, process injection, and event log clearing. Without proactive 
+threat hunting, this intrusion would have gone entirely undetected.
 
 ---
 
